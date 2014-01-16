@@ -1,11 +1,11 @@
 # Hydra.js
 Hydra.js is a module manager oriented system.
 
-## Updated to version 3.8.0
+## Updated to version 3.8.1
 
-[![Build Status](https://travis-ci.org/tcorral/Hydra.js.png)](https://travis-ci.org/tcorral/Hydra.js)
+[![Build Status](https://travis-ci.org/HydraJS/HydraJS.png)](https://travis-ci.org/HydraJS/HydraJS)
 
-[Changelog](https://raw.github.com/tcorral/Hydra.js/master/changelog.txt)
+[Changelog](https://raw.github.com/HydraJS/HydraJs/master/changelog.txt)
 
 ## Description
 
@@ -267,7 +267,7 @@ If you need compatibility with the previous event manager called Action, you can
 
 [Project Web](http://tcorral.github.io/Hydra.js)
 
-[API documentation](http://tcorral.github.io/Hydra.js/apis/Hydra.js_API_v3.8.0/index.html)
+[API documentation](http://tcorral.github.io/Hydra.js/apis/Hydra.js_API_v3.8.1/index.html)
 
 [Examples](http://tcorral.github.io/Hydra.js/#examples)
 
