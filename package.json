@@ -1,0 +1,73 @@
+{
+  "name": "hydra.js",
+  "version": "3.8.1",
+  "description": "Framework that gives you the tools to write your application using modules or widgets and make easy to work with them.",
+  "homepage": "http://tcorral.github.com/Hydra.js/",
+  "author": "Tomas Corral",
+  "contributors": [
+    {
+      "name": "Ramon Ferrer",
+      "github": "https://github.com/Ramonacus"
+    },
+    {
+      "name": "Marc Mignonsin",
+      "github": "https://github.com/mawrkus"
+    },
+    {
+      "name": "Adrià Jimenez",
+      "github": "https://github.com/ajimix"
+    },
+    {
+      "name": "Carlos Villuendas",
+      "github": "https://github.com/carlosvillu"
+    },
+    {
+      "name": "Rafael Yepes",
+      "github": "https://github.com/rafayepes"
+    },
+    {
+      "name": "Greg Freeman",
+      "blog": "http://www.gregfreeman.org/"
+    }
+  ],
+  "main": "./src/Hydra.js",
+  "keywords": [
+    "hydra",
+    "modular",
+    "modules",
+    "scalable"
+  ],
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://www.opensource.org/licenses/mit-license.php"
+    }
+  ],
+  "bugs": {
+    "mail": "amischol@gmail.com",
+    "web": "https://github.com/tcorral/Hydra.js/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tcorral/Hydra.js.git"
+  },
+  "scripts": {
+    "test": "mocha test/Hydra.js"
+  },
+  "devDependencies": {
+    "mocha": "*",
+    "sinon": "*",
+    "should": "1.2.2",
+    "zlib": "*",
+    "uglify-js": "*",
+    "grunt": "~0.4.1",
+    "swig": "~1.2.2",
+    "grunt-contrib-uglify": "~0.2.1",
+    "grunt-contrib-jshint": "~0.5.4",
+    "grunt-mocha-cli": "~1.0.6",
+    "grunt-contrib-compress": "~0.5.0",
+    "grunt-contrib-copy": "~0.4.1",
+    "grunt-release-steps": "0.3.7"
+  },
+  "github": "https://github.com/tcorral/Hydra.js"
+}
