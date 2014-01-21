@@ -104,7 +104,49 @@ module.exports = function (grunt) {
     fs.stat('versions/hydra.min.js.gz', function (err, stats) {
       fs.writeFile('README.md', oREADMETemplate({
         version: grunt.file.readJSON('package.json').version,
-        size: (stats.size / 1024).toFixed(2)
+        size: (stats.size / 1024).toFixed(2),
+        description: grunt.file.readJSON('package.json').description,
+        repository_type: grunt.file.readJSON('package.json').repository.type,
+        repository_url: grunt.file.readJSON('package.json').repository.url.replace('https', 'git'),
+        repository_shorten: grunt.file.readJSON('package.json').repository.url.replace('https://github.com/', '')
+      }), function (err) {
+        if (err) {
+          throw err;
+        }
+        done();
+      });
+    });
+  });
+  grunt.registerTask('bower', 'Creates a bower.json from template', function () {
+    var done = this.async(),
+      oBowerTemplate = swig.compileFile('templates/bower.tpl');
+    fs.stat('versions/hydra.min.js.gz', function (err, stats) {
+      fs.writeFile('bower.json', oBowerTemplate({
+        version: grunt.file.readJSON('package.json').version,
+        size: (stats.size / 1024).toFixed(2),
+        description: grunt.file.readJSON('package.json').description,
+        repository_type: grunt.file.readJSON('package.json').repository.type,
+        repository_url: grunt.file.readJSON('package.json').repository.url.replace('https', 'git'),
+        repository_shorten: grunt.file.readJSON('package.json').repository.url.replace('https://github.com/', '')
+      }), function (err) {
+        if (err) {
+          throw err;
+        }
+        done();
+      });
+    });
+  });
+  grunt.registerTask('component', 'Creates a component.json from template', function () {
+    var done = this.async(),
+      oComponentTemplate = swig.compileFile('templates/component.tpl');
+    fs.stat('versions/hydra.min.js.gz', function (err, stats) {
+      fs.writeFile('component.json', oComponentTemplate({
+        version: grunt.file.readJSON('package.json').version,
+        size: (stats.size / 1024).toFixed(2),
+        description: grunt.file.readJSON('package.json').description,
+        repository_type: grunt.file.readJSON('package.json').repository.type,
+        repository_url: grunt.file.readJSON('package.json').repository.url.replace('https', 'git'),
+        repository_shorten: grunt.file.readJSON('package.json').repository.url.replace('https://github.com/', '')
       }), function (err) {
         if (err) {
           throw err;
@@ -115,7 +157,7 @@ module.exports = function (grunt) {
   });
   // Default task(s).
   grunt.registerTask('test', ['jshint', 'mochacli']);
-  grunt.registerTask('default', ['jshint', 'mochacli', 'uglify', 'compress', 'copy', 'readme']);
+  grunt.registerTask('default', ['jshint', 'mochacli', 'uglify', 'compress', 'copy', 'readme', 'bower', 'component']);
   grunt.registerTask('deploy', ['jshint', 'mochacli', 'uglify', 'compress', 'copy', 'release:bump:patch', 'readme', 'release:add:commit:push:tag:pushTags:npm']);
 
 };

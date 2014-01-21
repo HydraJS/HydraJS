@@ -1,7 +1,7 @@
 # Hydra.js
 Hydra.js is a module manager oriented system.
 
-## Updated to version 3.8.2
+## Updated to version {{ version }}
 
 [![Build Status](https://travis-ci.org/HydraJS/HydraJS.png)](https://travis-ci.org/HydraJS/HydraJS)
 
@@ -29,7 +29,7 @@ Hydra.js uses a decoupled architecture that:
 * Allows set private variables to be used inside of modules.
 * Can be used in url threaded application as in an Ajax threaded application.
 * You can test your modules with any Unit Testing Framework.
-* Only 3.59KB when [Gzipped](https://github.com/HydraJS/HydraJS/raw/master/versions/hydra.min.js.gz).
+* Only {{ size }}KB when [Gzipped](https://github.com/HydraJS/HydraJS/raw/master/versions/hydra.min.js.gz).
 
 [Project Web](http://tcorral.github.io/Hydra.js)
 
