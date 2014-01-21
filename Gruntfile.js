@@ -115,7 +115,7 @@ module.exports = function (grunt) {
   });
   // Default task(s).
   grunt.registerTask('test', ['jshint', 'mochacli']);
-  grunt.registerTask('default', ['jshint', 'mochacli', 'uglify', 'compress', 'copy']);
-  grunt.registerTask('deploy', ['jshint', 'mochacli', 'uglify', 'compress', 'copy', 'release:bump:minor', 'readme', 'release:add:commit:push:tag:pushTags:npm']);
+  grunt.registerTask('default', ['jshint', 'mochacli', 'uglify', 'compress', 'copy', 'readme']);
+  grunt.registerTask('deploy', ['jshint', 'mochacli', 'uglify', 'compress', 'copy', 'release:bump:patch', 'readme', 'release:add:commit:push:tag:pushTags:npm']);
 
 };

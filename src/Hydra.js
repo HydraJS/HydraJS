@@ -1,7 +1,7 @@
 /*global require*/
 (function (und) {
   'use strict';
-  var setTimeout = setTimeout, namespace, Err = Error, root, isTypeOf, isInstanceOf, sNotDefined, oModules, oVars = {}, sObjectType, _null_, bUnblockUI, fpThrowErrorModuleNotRegistered, _true_, _false_, sVersion, sFunctionType, FakeModule, Hydra, bDebug, ErrorHandler, Module, Bus, oChannels, isNodeEnvironment, oObjProto;
+  var _setTimeout = setTimeout, namespace, Err = Error, root, isTypeOf, isInstanceOf, sNotDefined, oModules, oVars = {}, sObjectType, _null_, bUnblockUI, fpThrowErrorModuleNotRegistered, _true_, _false_, sVersion, sFunctionType, FakeModule, Hydra, bDebug, ErrorHandler, Module, Bus, oChannels, isNodeEnvironment, oObjProto;
 
   /**
    * Check if is the type indicated
@@ -71,7 +71,7 @@
    */
   function isJqueryObject(oObj) {
     var isJquery = _false_,
-      $ = root.jQuery;
+    $ = root.jQuery;
     if ($) {
       isJquery = isInstanceOf(oObj, $);
     }
@@ -93,7 +93,7 @@
    */
   function generateUniqueKey() {
     var oMath = Math, sFirstToken = +new Date() + '',
-      sSecondToken = oMath.floor(oMath.random() * (999999 - 1 + 1)) + 1;
+    sSecondToken = oMath.floor(oMath.random() * (999999 - 1 + 1)) + 1;
     return sFirstToken + '_' + sSecondToken;
   }
 
@@ -185,7 +185,7 @@
    * @type {String}
    * @private
    */
-  sVersion = '3.8.1';
+  sVersion = '3.8.2';
 
   /**
    * Used to activate the debug mode
@@ -352,13 +352,14 @@
    * @param {Object} oObject
    */
   function clone(oObject) {
-    var oCopy, oItem, nIndex, nLenArr, sAttr;
-    // Handle the 3 simple types, and null or undefined
-    if (null == oObject || !isTypeOf(oObject, sObjectType)) {
-      return oObject;
-    }
-
-    if (isEvent(oObject) || isJqueryObject(oObject)) {
+    var oCopy, sAttr;
+    // Handle null, undefined, DOM element, Event and jQuery objects, and all the objects that are instances of a constructor different from Object.
+    if (null == oObject ||      // Is null
+    !isTypeOf(oObject, sObjectType) ||  // Is not an object (primitive)
+    oObject.constructor.toString().indexOf('Object()') === -1 ||  // Is an instance
+    isEvent(oObject) ||   // Is an event
+    isJqueryObject(oObject) ||  // Is a jQuery object
+    ( oObject.nodeType && oObject.nodeType === 1 )) { // Is a DOM element
       return oObject;
     }
 
@@ -371,11 +372,7 @@
 
     // Handle Array
     if (isInstanceOf(oObject, Array)) {
-      oCopy = [];
-      for (nIndex = 0, nLenArr = oObject.length; nIndex < nLenArr; nIndex++) {
-        oItem = oObject[nIndex];
-        oCopy[nIndex] = clone(oItem);
-      }
+      oCopy = slice(Array, 0);
       return oCopy;
     }
 
@@ -435,7 +432,7 @@
    */
   function subscribersByEvent(oChannel, sEventName) {
     var aSubscribers = [],
-      sEvent;
+    sEvent;
     if (!isTypeOf(oChannel, sNotDefined)) {
       for (sEvent in oChannel) {
         if (ownProp(oChannel, sEvent) && sEvent === sEventName) {
@@ -507,8 +504,8 @@
      */
     unsubscribeFrom: function (sChannelId, sEventType, oSubscriber) {
       var aChannelEvents = this._getChannelEvents(sChannelId, sEventType),
-        oItem,
-        nEvent = aChannelEvents.length - 1;
+      oItem,
+      nEvent = aChannelEvents.length - 1;
 
       for (; nEvent >= 0; nEvent--) {
         oItem = aChannelEvents[nEvent];
@@ -565,7 +562,7 @@
      */
     _removeSubscribers: function (aSubscribers, oSubscriber) {
       var nUnsubscribed = 0,
-        nIndex;
+      nIndex;
       if (!isTypeOf(aSubscribers, sNotDefined)) {
         nIndex = aSubscribers.length - 1;
         for (; nIndex >= 0; nIndex--) {
@@ -626,7 +623,17 @@
 
       return nUnsubscribed > 0;
     },
-
+    /**
+     * Method to execute handlers
+     * @param oHandlerObject
+     * @param oData
+     */
+    _executeHandler: function ( oHandlerObject, oData, sChannelId, sEvent ) {
+      oHandlerObject.handler.call(oHandlerObject.subscriber, oData);
+      if (bDebug) {
+        ErrorHandler.log(sChannelId, sEvent, oHandlerObject);
+      }
+    },
     /**
      * Method to execute all the callbacks but without blocking the user interface.
      * @param {Array<Module>} aSubscribers
@@ -636,20 +643,15 @@
      * @private
      */
     _avoidBlockUI: function (aSubscribers, oData, sChannelId, sEvent) {
-      var oHandlerObject,
-        aSubs = aSubscribers.concat();
-      setTimeout(function recall() {
+      var aSubs = slice(aSubscribers, 0);
+      _setTimeout(function recall() {
         var nStart = +new Date();
         do {
-          oHandlerObject = aSubs.shift();
-          oHandlerObject.handler.call(oHandlerObject.subscriber, oData);
-          if (bDebug) {
-            ErrorHandler.log(sChannelId, sEvent, oHandlerObject);
-          }
+          this._executeHandler( aSubs.shift(), oData, sChannelId, sEvent );
         }
         while (aSubs.length > 0 && ( +new Date() - nStart < 50 ));
         if (aSubs.length > 0) {
-          setTimeout(recall, 25);
+          _setTimeout(recall, 25);
         }
       }, 25);
     },
@@ -662,11 +664,10 @@
      * @return {Boolean}
      */
     publish: function (sChannelId, sEvent, oData) {
-      var aSubscribers = this.subscribers(sChannelId, sEvent).slice(),
-        nLenSubscribers = aSubscribers.length,
-        nIndex = 0,
-        oHandlerObject,
-        oDataToPublish;
+      var aSubscribers = slice(this.subscribers(sChannelId, sEvent), 0),
+      oSubscriber,
+      nLenSubscribers = aSubscribers.length,
+      oDataToPublish;
       if (nLenSubscribers === 0) {
         return _false_;
       }
@@ -674,12 +675,8 @@
       if (bUnblockUI) {
         this._avoidBlockUI(aSubscribers, oDataToPublish, sChannelId, sEvent);
       } else {
-        for (; nIndex < nLenSubscribers; nIndex++) {
-          oHandlerObject = aSubscribers[nIndex];
-          oHandlerObject.handler.call(oHandlerObject.subscriber, oDataToPublish);
-          if (bDebug) {
-            ErrorHandler.log(sChannelId, sEvent, oHandlerObject);
-          }
+        while( !!(oSubscriber = aSubscribers.shift()) ){
+          this._executeHandler(oSubscriber, oDataToPublish, sChannelId, sEvent);
         }
       }
       return _true_;
@@ -709,25 +706,25 @@
    */
   function dependencyInjector(sModuleId, aDependencies) {
     var nDependency,
-      nLenDependencies,
-      sDependency,
-      aFinalDependencies = [],
-      oMapping = {
-        '$bus': Bus,
-        '$module': Hydra.module,
-        '$log': ErrorHandler,
-        '$api': Hydra,
-        '$global': root,
-        '$doc': root.document || null
-      },
-      aMappings = [oMapping, oVars, oModules],
-      nLenMappings = aMappings.length,
-      oMap,
-      oResult = {
-        mapping: [],
-        dependencies: []
-      },
-      nMapping = 0;
+    nLenDependencies,
+    sDependency,
+    aFinalDependencies = [],
+    oMapping = {
+      '$bus': Bus,
+      '$module': Hydra.module,
+      '$log': ErrorHandler,
+      '$api': Hydra,
+      '$global': root,
+      '$doc': root.document || null
+    },
+    aMappings = [oMapping, oVars, oModules],
+    nLenMappings = aMappings.length,
+    oMap,
+    oResult = {
+      mapping: [],
+      dependencies: []
+    },
+    nMapping = 0;
 
     aDependencies = aDependencies !== und ? aDependencies : (oModules[sModuleId].dependencies || []);
     nLenDependencies = aDependencies.length;
@@ -767,8 +764,8 @@
    */
   function addPropertiesAndMethodsToModule(sModuleId, aDependencies) {
     var oModule,
-      fpInitProxy,
-      oDependencies = dependencyInjector(sModuleId, aDependencies);
+    fpInitProxy,
+    oDependencies = dependencyInjector(sModuleId, aDependencies);
     oModule = oModules[sModuleId].creator.apply(oModules[sModuleId], oDependencies.dependencies);
     oModule.dependencies = aDependencies;
     oModule.resolvedDependencies = oDependencies.map;
@@ -1040,13 +1037,13 @@
     _multiModuleStart: function (aModulesIds, sIdInstance, oData, bSingle) {
       var aInstancesIds, aData, aSingle, nIndex, nLenModules, sModuleId;
       if (isArray(sIdInstance)) {
-        aInstancesIds = sIdInstance.slice(0);
+        aInstancesIds = slice(sIdInstance, 0);
       }
       if (isArray(oData)) {
-        aData = oData.slice(0);
+        aData = slice(oData, 0);
       }
       if (isArray(bSingle)) {
-        aSingle = bSingle.slice(0);
+        aSingle = slice(bSingle, 0);
       }
       for (nIndex = 0, nLenModules = aModulesIds.length; nIndex < nLenModules; nIndex++) {
         sModuleId = aModulesIds[nIndex];
@@ -1089,7 +1086,7 @@
       var bStartMultipleModules = isArray(oModuleId);
 
       if (bStartMultipleModules) {
-        this._multiModuleStart(oModuleId.slice(0), oIdInstance, oData, oSingle);
+        this._multiModuleStart(slice(oModuleId, 0), oIdInstance, oData, oSingle);
       }
       else {
         this._singleModuleStart(oModuleId, oIdInstance, oData, oSingle);
@@ -1131,7 +1128,7 @@
         oMerge = simpleMerge(oMerge, {
           __super__: {
             __call__: function (sKey, aArgs) {
-              return oInstance[sKey].apply(oInstance, aArgs);
+              return oInstance[sKey].apply(oMerge, aArgs);
             }
           }
         });
@@ -1189,8 +1186,8 @@
      */
     _multiModuleStop: function (oModule) {
       var sKey,
-        oInstances = oModule.instances,
-        oInstance;
+      oInstances = oModule.instances,
+      oInstance;
       for (sKey in oInstances) {
         if (ownProp(oInstances, sKey)) {
           oInstance = oInstances[sKey];
