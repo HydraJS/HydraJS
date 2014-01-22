@@ -1513,7 +1513,7 @@ describe('Hydra.js', function () {
           init: oStub
         };
       });
-      Hydra.module.register('test2', ['test'], function (test) {
+      Hydra.module.register('test2', ['hm_test'], function (test) {
         return {
           init: function () {
             test.start();
@@ -1528,14 +1528,14 @@ describe('Hydra.js', function () {
 
     it('test that you can overwrite the dependencies', function () {
       var oStub, oModule;
-      Hydra.module.register('_test', function () {
+      Hydra.module.register('test', function () {
         return {
           init: function () {
           }
         };
       });
 
-      Hydra.module.register('_test2', ['_test'], function (test) {
+      Hydra.module.register('test2', ['hm_test'], function (test) {
         return {
           init: function () {
             test.start();
@@ -1544,7 +1544,7 @@ describe('Hydra.js', function () {
       });
 
       oStub = sinon.stub();
-      oModule = Hydra.module.test('_test2', [
+      oModule = Hydra.module.test('test2', [
         {
           start: oStub
         }

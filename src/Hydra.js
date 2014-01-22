@@ -1,8 +1,40 @@
 /*global require*/
 (function (und) {
   'use strict';
-  var _setTimeout = setTimeout, namespace, Err = Error, root, isTypeOf, isInstanceOf, sNotDefined, oModules, oVars = {}, sObjectType, _null_, bUnblockUI, fpThrowErrorModuleNotRegistered, _true_, _false_, sVersion, sFunctionType, FakeModule, Hydra, bDebug, ErrorHandler, Module, Bus, oChannels, isNodeEnvironment, oObjProto;
+  var _setTimeout = setTimeout, namespace, Err = Error, root, isTypeOf, isInstanceOf, sNotDefined, oModules, oVars = {}, sObjectType, _null_, bUnblockUI, fpThrowErrorModuleNotRegistered, _true_, _false_, sVersion, sFunctionType, FakeModule, Hydra, bDebug, ErrorHandler, Module, Bus, oChannels, isNodeEnvironment, getLastElementArray, setLastElementArray, namespacing;
 
+  /**
+   * Create or get a namespace by a namespace defined as string
+   * @param sNamespace
+   * @returns {root|*}
+   */
+  namespacing = function ( sNamespace )
+  {
+    var oObj = root,
+    aElements = sNamespace.split( '.' ),
+    sElement;
+    while( !!( sElement = aElements.shift() ) ) {
+      oObj = oObj[sElement] === und ? oObj[sElement] : oObj[sElement] = {};
+    }
+
+    return oObj;
+  };
+  /**
+   * Returns the last element in an array
+   * @param aArray
+   * @returns {*}
+   */
+  getLastElementArray = function (aArray) {
+    return aArray[aArray.length -1];
+  };
+  /**
+   * Sets the value of the last element in an array
+   * @param aArray
+   * @param oValue
+   */
+  setLastElementArray = function (aArray, oValue) {
+    aArray[aArray.length -1] = oValue;
+  };
   /**
    * Check if is the type indicated
    * @param oMix
@@ -127,13 +159,6 @@
   sNotDefined = 'undefined';
 
   /**
-   * Cache of object prototype to use it in other functions
-   * @type {Object}
-   * @private
-   */
-  oObjProto = Object.prototype;
-
-  /**
    * set the correct root depending from the environment.
    * @type {Object}
    * @private
@@ -185,7 +210,7 @@
    * @type {String}
    * @private
    */
-  sVersion = '3.8.2';
+  sVersion = '3.8.5';
 
   /**
    * Used to activate the debug mode
@@ -209,7 +234,7 @@
    * @private
    */
   function toString(oObject) {
-    return oObjProto.toString.call(oObject);
+    return Object.prototype.toString.call(oObject);
   }
 
   /**
@@ -693,6 +718,27 @@
   };
 
   /**
+   * Traverse all the mapping systems to get a match.
+   * @param oMappingMaps
+   * @param sDependency
+   * @returns {*}
+   */
+  function getDependencyThroughAllMaps( oMappingMaps, sDependency, fpDontMatch ){
+    var sKey,
+        oMap,
+        oDependency;
+    for ( sKey in oMappingMaps ) {
+      if ( ownProp(oMappingMaps, sKey) ) {
+        oMap = oMappingMaps[sKey];
+        oDependency = oMap[sDependency];
+        if( oDependency ) {
+          return  oDependency;
+        }
+      }
+    }
+    fpDontMatch( sDependency );
+  }
+  /**
    * Inject dependencies creating modules
    * Look for dependencies in:
    * Hydra mappings
@@ -705,52 +751,49 @@
    * @returns {Object}
    */
   function dependencyInjector(sModuleId, aDependencies) {
-    var nDependency,
-    nLenDependencies,
-    sDependency,
+    var sDependency,
+    sPrefix,
     aFinalDependencies = [],
     oMapping = {
-      '$bus': Bus,
-      '$module': Hydra.module,
-      '$log': ErrorHandler,
-      '$api': Hydra,
-      '$global': root,
-      '$doc': root.document || null
+      'bus': Bus,
+      'module': Hydra.module,
+      'log': ErrorHandler,
+      'api': Hydra,
+      'global': root,
+      'doc': root.document || null
     },
-    aMappings = [oMapping, oVars, oModules],
-    nLenMappings = aMappings.length,
+    oMappingMaps = {
+      '$$_': oMapping,            // Special Mapping,
+      '$': oMapping,
+      'pr_': oVars,              // Private Mapping
+      'hm_': oModules,          // Hydra Modules Mapping
+      'ns_': namespace || root, // Namespace Mapping
+      'gl_': root                // Global Mapping
+    },
     oMap,
+    oDependency,
     oResult = {
       mapping: [],
       dependencies: []
     },
-    nMapping = 0;
+    fpLastTry = function () {
+      oDependency = namespacing( sDependency );
+    };
 
-    aDependencies = aDependencies !== und ? aDependencies : (oModules[sModuleId].dependencies || []);
-    nLenDependencies = aDependencies.length;
-
-    // If namespace is different of root we add namespace and root to aMappings.
-    aMappings = aMappings.concat((namespace !== root ? [namespace, root] : [root]));
-
-    for (nDependency = 0; nDependency < nLenDependencies; nDependency++) {
-      sDependency = aDependencies[nDependency];
-
-      if (!isTypeOf(sDependency, 'string')) {
-        aFinalDependencies[nDependency] = sDependency;
-        continue;
-      }
-
-      for (nMapping = 0; nMapping <= nLenMappings; nMapping++) {
-        oMap = aMappings[nMapping];
-        if (oMap[sDependency]) {
-          aFinalDependencies[nDependency] = oMap[sDependency];
-          break;
+    aDependencies = (aDependencies !== und ? aDependencies : (oModules[sModuleId].dependencies || [])).concat();
+    while ( !!(sDependency = aDependencies.shift()) ) {
+      if ( isTypeOf( sDependency, 'string') ) {
+        oMap = oMappingMaps[ (sPrefix = sDependency.substr(0, 3) ) ] || oMappingMaps[ (sPrefix = sDependency.substr(0, 1) ) ] || (sPrefix = '') || root;
+        sDependency = sDependency.replace(sPrefix, '');
+        oDependency = oMap[sDependency];
+        if ( !oDependency ) {
+          oDependency = getDependencyThroughAllMaps( oMappingMaps, sDependency, fpLastTry );
         }
+        aFinalDependencies.push( oDependency );
+      }else{
+        aFinalDependencies.push( sDependency );
       }
-      if (aFinalDependencies[nDependency] === und) {
-        aFinalDependencies[nDependency] = null;
-      }
-      oResult.mapping[nDependency] = sDependency;
+      oResult.mapping.push( sDependency );
     }
     oResult.dependencies = aFinalDependencies;
     return oResult;
