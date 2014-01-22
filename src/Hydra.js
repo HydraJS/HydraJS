@@ -14,7 +14,7 @@
     aElements = sNamespace.split( '.' ),
     sElement;
     while( !!( sElement = aElements.shift() ) ) {
-      oObj = oObj[sElement] === und ? oObj[sElement] : oObj[sElement] = {};
+      oObj = oObj[sElement] !== und ? oObj[sElement] : oObj[sElement] = {};
     }
 
     return oObj;
@@ -210,7 +210,7 @@
    * @type {String}
    * @private
    */
-  sVersion = '3.8.5';
+  sVersion = '3.8.6';
 
   /**
    * Used to activate the debug mode
@@ -723,10 +723,10 @@
    * @param sDependency
    * @returns {*}
    */
-  function getDependencyThroughAllMaps( oMappingMaps, sDependency, fpDontMatch ){
+  function getDependencyThroughAllMaps( oMappingMaps, sDependency ){
     var sKey,
-        oMap,
-        oDependency;
+    oMap,
+    oDependency;
     for ( sKey in oMappingMaps ) {
       if ( ownProp(oMappingMaps, sKey) ) {
         oMap = oMappingMaps[sKey];
@@ -736,7 +736,7 @@
         }
       }
     }
-    fpDontMatch( sDependency );
+    return namespacing( sDependency );
   }
   /**
    * Inject dependencies creating modules
@@ -775,9 +775,6 @@
     oResult = {
       mapping: [],
       dependencies: []
-    },
-    fpLastTry = function () {
-      oDependency = namespacing( sDependency );
     };
 
     aDependencies = (aDependencies !== und ? aDependencies : (oModules[sModuleId].dependencies || [])).concat();
@@ -787,7 +784,7 @@
         sDependency = sDependency.replace(sPrefix, '');
         oDependency = oMap[sDependency];
         if ( !oDependency ) {
-          oDependency = getDependencyThroughAllMaps( oMappingMaps, sDependency, fpLastTry );
+          oDependency = getDependencyThroughAllMaps( oMappingMaps, sDependency );
         }
         aFinalDependencies.push( oDependency );
       }else{
