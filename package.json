@@ -52,7 +52,7 @@
     "url": "https://github.com/HydraJS/HydraJS.git"
   },
   "scripts": {
-    "test": "mocha test/Hydra.js"
+    "test": "node node_modules/karma/bin/karma start config/karma.conf.js --single-run --browsers PhantomJS config"
   },
   "devDependencies": {
     "grunt": "~0.4.1",
