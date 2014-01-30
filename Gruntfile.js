@@ -21,13 +21,10 @@ module.exports = function (grunt) {
         options: srcHintOptions
       }
     },
-    mochacli: {
-      options: {
-        require: ['should'],
-        reporter: 'progress',
-        bail: true
-      },
-      all: ['test/Hydra.js']
+    karma: {
+      unit: {
+        configFile: 'config/karma.conf.js'
+      }
     },
     compress: {
       main: {
@@ -92,7 +89,7 @@ module.exports = function (grunt) {
 
   // Load the plugins
   grunt.loadNpmTasks("grunt-contrib-jshint");
-  grunt.loadNpmTasks("grunt-mocha-cli");
+  grunt.loadNpmTasks("grunt-karma");
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-compress');
   grunt.loadNpmTasks('grunt-contrib-copy');
@@ -156,8 +153,8 @@ module.exports = function (grunt) {
     });
   });
   // Default task(s).
-  grunt.registerTask('test', ['jshint', 'mochacli']);
-  grunt.registerTask('default', ['jshint', 'mochacli', 'uglify', 'compress', 'copy', 'readme', 'bower', 'component']);
-  grunt.registerTask('deploy', ['jshint', 'mochacli', 'uglify', 'compress', 'copy', 'release:bump:patch', 'readme', 'release:add:commit:push:tag:pushTags:npm']);
+  grunt.registerTask('test', ['jshint', 'karma']);
+  grunt.registerTask('default', ['jshint', 'karma', 'uglify', 'compress', 'copy', 'readme', 'bower', 'component']);
+  grunt.registerTask('deploy', ['jshint', 'karma', 'uglify', 'compress', 'copy', 'release:bump:patch', 'readme', 'release:add:commit:push:tag:pushTags:npm']);
 
 };

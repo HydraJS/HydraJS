@@ -1,96 +1,270 @@
-/*global require*/
-(function (und) {
+(function (root, und) {
   'use strict';
-  var _setTimeout = setTimeout, namespace, Err = Error, root, isTypeOf, isInstanceOf, sNotDefined, oModules, oVars = {}, sObjectType, _null_, bUnblockUI, fpThrowErrorModuleNotRegistered, _true_, _false_, sVersion, sFunctionType, FakeModule, Hydra, bDebug, ErrorHandler, Module, Bus, oChannels, isNodeEnvironment, getLastElementArray, setLastElementArray, namespacing;
+  /**
+   * Module instance
+   * @type {Object}
+   */
+  var oModule,
+  /**
+   * Special Mapping
+   * @type {Object}
+   */
+  oMapping,
+  /**
+   * Mapping of prefixes by object to check to resolve dependencies.
+   */
+  oMappingMaps = { ___order___: [] },
+  /**
+   * set the global namespace to be the same as root
+   * use Hydra.setNamespace to change it.
+   */
+  namespace = root,
+  /**
+   * Cache Error
+   * @type {Function}
+   */
+  Err = Error,
+  /**
+   * Cache 'undefined' string to test typeof
+   * @type {String}
+   * @private
+   */
+  sNotDefined = 'undefined',
+  /**
+   * Property that will save the registered modules
+   * @type {Object}
+   * @private
+   */
+  oModules = {},
+  /**
+   * Private variables object to be shared between modules
+   * @type {{}}
+   */
+  oVars = {},
+  /**
+   * Object type string
+   * @type {string}
+   */
+  sObjectType = 'object',
+  /**
+   * Contains a reference to false to decrease final size
+   * @type {Boolean}
+   * @private
+   */
+  _false_ = false,
+  /**
+   * Function type string
+   * @type {string}
+   */
+  sFunctionType = 'function',
+  /**
+   * Used to activate the debug mode
+   * @type {Boolean}
+   * @private
+   */
+  bDebug = _false_,
+  /**
+   * Private object to save the channels for communicating event driven
+   * @type {{global: Object}}
+   * @private
+   */
+  oChannels = {
+    global: {}
+  },
+  /**
+   * Check if Hydra.js is loaded in Node.js environment
+   * @type {Boolean}
+   * @private
+   */
+  isNodeEnvironment = isTypeOf( root.exports, sObjectType ) && isTypeOf( root.module, sObjectType ) && isTypeOf( root.module.exports, sObjectType) && isTypeOf( root.require, sFunctionType ),
+  FakeModule, Hydra, ErrorHandler, Module, Bus, Promise, When ;
+
+  /**
+   * Helper to iterate over objects using for-in approach
+   * @param oObject
+   * @param fpProcess
+   */
+  function iterateObject( oObject, fpProcess ){
+    var sKey;
+
+    for ( sKey in oObject ) {
+      if ( oObject.hasOwnProperty( sKey ) ) {
+        fpProcess( oObject[sKey], sKey );
+      }
+    }
+  }
+  /**
+   * Returns an instance of Promise
+   * @returns {Promise}
+   */
+  function getPromise(){
+    return new Promise();
+  }
+  /**
+   * Helper function to create the mapping
+   * @param {Object} oMapping
+   * @param {String} sId
+   * @param {Object} oMap
+   * @param {Function} [fpResolveDI]
+   */
+  function createMapping( oMapping, sId, oMap, fpResolveDI ) {
+    oMapping.___order___.push( sId );
+    oMapping[sId] = {
+      __map__: oMap
+    };
+    if ( !fpResolveDI ){
+      fpResolveDI = getResolveDICallback( oMapping[sId] );
+    }
+    oMapping[sId].__resolveDI__ = fpResolveDI;
+  }
+  /**
+   * Returns the callback to be executed when needed.
+   * @param nIndex
+   * @param sType
+   * @param oData
+   * @param nLenArgs
+   * @param oPromise
+   * @param aSolutions
+   * @returns {Function}
+   */
+  function getThenCallbacks( nIndex, sType, oData, nLenArgs, oPromise, aSolutions) {
+    return function ( oObj ) {
+      oData.nLenPromisesResolved++;
+      aSolutions[nIndex] = oObj;
+      if ( nLenArgs === oData.nLenPromisesResolved ) {
+        oPromise[sType].apply( oPromise, aSolutions );
+      }
+    };
+  }
+
+  /**
+   * Returns the promise callback by type
+   * @param oContext
+   * @param sType
+   * @returns {Function}
+   */
+  function getPromiseCallbacks( oContext, sType ) {
+    return function () {
+      oContext.bCompleted = true;
+      oContext.sType = sType;
+      oContext.oResult = arguments;
+      while ( oContext.aPending[0] ) {
+        oContext.aPending.shift()[sType].apply( oContext, arguments );
+      }
+    };
+  }
+
+  /**
+   * Traverse all the mapping systems to get a match.
+   * @param sDependency
+   * @returns {*}
+   */
+  function getDependencyThroughAllMaps( sDependency ){
+    var oMap,
+    oDependency,
+    nIndexOrder,
+    nLenOrder,
+    aOrderDependency = oMappingMaps.___order___;
+
+    createMapping( oMappingMaps, '__', root, function ( sDependency ) {
+      var oDependency,
+      oPromise = getPromise();
+      oDependency = resolveNamespace( sDependency );
+      oPromise.resolve( oDependency );
+      return oPromise;
+    } );
+
+    for ( nIndexOrder = 0, nLenOrder = aOrderDependency.length; nIndexOrder < nLenOrder; nIndexOrder++ ) {
+      oMap = oMappingMaps[aOrderDependency[nIndexOrder]];
+      oDependency = oMap.__resolveDI__( sDependency );
+      if ( oDependency )
+      {
+        delete oMappingMaps.__;
+        return oDependency;
+      }
+    }
+    delete oMappingMaps.__;
+  }
+
+  /**
+   * Resolve dependency injection by default.
+   * @param {Object} oMapping
+   * @returns {*}
+   * @private
+   */
+  function getResolveDICallback( oMapping ) {
+    return function ( sDependency ) {
+      var oPromise = getPromise();
+      if ( !oMapping.__map__[sDependency] ){
+        return false;
+      }
+      oPromise.resolve( oMapping.__map__[sDependency] );
+      return oPromise;
+    };
+  }
 
   /**
    * Create or get a namespace by a namespace defined as string
    * @param sNamespace
    * @returns {root|*}
    */
-  namespacing = function ( sNamespace )
+  function resolveNamespace( sNamespace )
   {
     var oObj = root,
     aElements = sNamespace.split( '.' ),
     sElement;
-    while( !!( sElement = aElements.shift() ) ) {
+    while ( !!( sElement = aElements.shift() ) ) {
       oObj = oObj[sElement] !== und ? oObj[sElement] : oObj[sElement] = {};
     }
-
     return oObj;
-  };
-  /**
-   * Returns the last element in an array
-   * @param aArray
-   * @returns {*}
-   */
-  getLastElementArray = function (aArray) {
-    return aArray[aArray.length -1];
-  };
-  /**
-   * Sets the value of the last element in an array
-   * @param aArray
-   * @param oValue
-   */
-  setLastElementArray = function (aArray, oValue) {
-    aArray[aArray.length -1] = oValue;
-  };
+  }
+
   /**
    * Check if is the type indicated
    * @param oMix
    * @param sType
    * @returns {boolean}
    */
-  isTypeOf = function (oMix, sType) {
+  function isTypeOf( oMix, sType ) {
     return typeof oMix === sType;
-  };
+  }
+
   /**
    * Wrapper of instanceof to reduce final size
    * @param oInstance
    * @param oConstructor
    * @returns {boolean}
    */
-  isInstanceOf = function (oInstance, oConstructor) {
+  function isInstanceOf( oInstance, oConstructor ) {
     return oInstance instanceof oConstructor;
-  };
+  }
+
   /**
    * Return the message to show when a module is not registered
-   * @param sModuleId
-   * @param bThrow
-   * @returns {string}
+   * @param {String} sModuleId
+   * @param {Boolean} [bThrow]
+   * @returns {String}
    */
-  fpThrowErrorModuleNotRegistered = function (sModuleId, bThrow) {
+  function fpThrowErrorModuleNotRegistered( sModuleId, bThrow ) {
     var sMessage = 'The module ' + sModuleId + ' is not registered in the system';
-    if (bThrow) {
-      throw new Err(sMessage);
+    if ( bThrow ) {
+      throw new Err( sMessage );
     }
     return sMessage;
-  };
-
-  /**
-   * Object type string
-   * @type {string}
-   */
-  sObjectType = 'object';
-
-  /**
-   * Function type string
-   * @type {string}
-   */
-  sFunctionType = 'function';
+  }
 
   /**
    * Use Event detection and if it fails it degrades to use duck typing detection to test if the supplied object is an Event
    * @param oObj
    * @returns {boolean}
    */
-  function isEvent(oObj) {
+  function isEvent( oObj ) {
     try {
-      return isInstanceOf(oObj, Event);
-    } catch (erError) {
+      return isInstanceOf( oObj, Event );
+    } catch ( erError ) {
       // Duck typing detection (If it sounds like a duck and it moves like a duck, it's a duck)
-      if (oObj.altKey !== und && ( oObj.srcElement || oObj.target )) {
-        return _true_;
+      if ( oObj.altKey !== und && ( oObj.srcElement || oObj.target ) ) {
+        return true;
       }
     }
     return _false_;
@@ -101,11 +275,11 @@
    * @param oObj
    * @returns {boolean}
    */
-  function isJqueryObject(oObj) {
+  function isJqueryObject( oObj ) {
     var isJquery = _false_,
     $ = root.jQuery;
-    if ($) {
-      isJquery = isInstanceOf(oObj, $);
+    if ( $ ) {
+      isJquery = isInstanceOf( oObj, $ );
     }
     return isJquery;
   }
@@ -115,8 +289,7 @@
    * An empty function to be used as default is no supplied callbacks.
    * @private
    */
-  function nullFunc() {
-  }
+  function nullFunc() {}
 
   /**
    * Used to generate an unique key for instance ids that are not supplied by the user.
@@ -125,7 +298,7 @@
    */
   function generateUniqueKey() {
     var oMath = Math, sFirstToken = +new Date() + '',
-    sSecondToken = oMath.floor(oMath.random() * (999999 - 1 + 1)) + 1;
+    sSecondToken = oMath.floor( oMath.random() * ( 999999 - 1 + 1 ) ) + 1;
     return sFirstToken + '_' + sSecondToken;
   }
 
@@ -135,97 +308,19 @@
    * @return {Number}
    * @private
    */
-  function getObjectLength(oObj) {
-    var nLen, sKey, fpKeys = Object.keys;
-    if (fpKeys) {
-      nLen = fpKeys(oObj).length;
+  function getObjectLength( oObj ) {
+    var nLen, fpKeys = Object.keys;
+    if ( fpKeys ) {
+      nLen = fpKeys( oObj ).length;
     }
     else {
       nLen = 0;
-      for (sKey in oObj) {
-        if (ownProp(oObj, sKey)) {
-          nLen++;
-        }
-      }
+      iterateObject( oObj, function (){
+        nLen++;
+      } );
     }
     return nLen;
   }
-
-  /**
-   * Cache 'undefined' string to test typeof
-   * @type {String}
-   * @private
-   */
-  sNotDefined = 'undefined';
-
-  /**
-   * set the correct root depending from the environment.
-   * @type {Object}
-   * @private
-   */
-  root = this;
-
-  /**
-   * set the global namespace to be the same as root
-   * use Hydra.setNamespace to change it.
-   */
-  namespace = root;
-  /**
-   * Check if Hydra.js is loaded in Node.js environment
-   * @type {Boolean}
-   * @private
-   */
-  isNodeEnvironment = typeof exports === sObjectType && typeof module === sObjectType && typeof module.exports === sObjectType && typeof require === sFunctionType;
-
-  /**
-   * Contains a reference to null object to decrease final size
-   * @type {Object}
-   * @private
-   */
-  _null_ = null;
-
-  /**
-   * Contains a reference to false to decrease final size
-   * @type {Boolean}
-   * @private
-   */
-  _false_ = false;
-
-  /**
-   * Contains a reference to true to decrease final size
-   * @type {Boolean}
-   * @private
-   */
-  _true_ = true;
-
-  /**
-   * Property that will save the registered modules
-   * @type {Object}
-   * @private
-   */
-  oModules = {};
-
-  /**
-   * Version of Hydra
-   * @type {String}
-   * @private
-   */
-  sVersion = '3.8.6';
-
-  /**
-   * Used to activate the debug mode
-   * @type {Boolean}
-   * @private
-   */
-  bDebug = _false_;
-
-  /**
-   * Use to activate the unblock UI when notifies are executed.
-   * WARNING!!! This will not block your UI but could give problems with the order of execution.
-   * @type {Boolean}
-   * @private
-   */
-  bUnblockUI = _false_;
 
   /**
    * Wrapper of Object.prototype.toString to detect type of object in cross browsing mode.
@@ -233,8 +328,8 @@
    * @return {String}
    * @private
    */
-  function toString(oObject) {
-    return Object.prototype.toString.call(oObject);
+  function toString( oObject ) {
+    return Object.prototype.toString.call( oObject );
   }
 
   /**
@@ -243,8 +338,8 @@
    * @return {Boolean}
    * @private
    */
-  function isFunction(fpCallback) {
-    return toString(fpCallback) === '[' + sObjectType + ' Function]';
+  function isFunction( fpCallback ) {
+    return toString( fpCallback ) === '[' + sObjectType + ' Function]';
   }
 
   /**
@@ -262,39 +357,16 @@
    * @param {Boolean} _bDebug
    * @private
    */
-  function setDebug(_bDebug) {
+  function setDebug( _bDebug ) {
     bDebug = _bDebug;
   }
 
   /**
-   * setUnblockUI is a method to set the bUnblockUI flag.
-   * @param {Boolean} _bUnblockUI
-   * @private
+   * Return a copy of an Array or convert a LikeArray object to Array
+   * @param oLikeArray
    */
-  function setUnblockUI(_bUnblockUI) {
-    bUnblockUI = _bUnblockUI;
-  }
-
-  /**
-   * Converts objects like node list to real array.
-   * @param {Object} oLikeArray
-   * @param {Number} nElements
-   * @return {Array<*>}
-   * @private
-   */
-  function slice(oLikeArray, nElements) {
-    return [].slice.call(oLikeArray, nElements || 0);
-  }
-
-  /**
-   * Wrapper of Object.hasOwnProperty
-   * @param {Object} oObj
-   * @param {String} sKey
-   * @return {Boolean}
-   * @private
-   */
-  function ownProp(oObj, sKey) {
-    return oObj.hasOwnProperty(sKey);
+  function copyArray( oLikeArray ) {
+    return [].slice.call( oLikeArray, 0 );
   }
 
   /**
@@ -305,16 +377,12 @@
    * @param {Boolean} bSingle
    * @private
    */
-  function beforeInit(oInstance, oModifyInit, oData, bSingle) {
-    var sKey, oMember;
-    for (sKey in oModifyInit) {
-      if (ownProp(oModifyInit, sKey)) {
-        oMember = oModifyInit[sKey];
-        if (oInstance[sKey] && isTypeOf(oMember, sFunctionType)) {
-          oMember(oInstance, oData, bSingle);
-        }
+  function beforeInit( oInstance, oModifyInit, oData, bSingle ) {
+    iterateObject( oModifyInit, function ( oMember, sKey ) {
+      if ( oInstance[sKey] && isTypeOf( oMember, sFunctionType ) ) {
+        oMember( oInstance, oData, bSingle );
       }
-    }
+    } );
   }
 
   /**
@@ -327,33 +395,30 @@
    * @param {String} sIdInstance
    * @param {Object} oData
    * @param {Boolean} bSingle
-   * @return {Module} instance of the module
    * @private
    */
-  function startSingleModule(oWrapper, sModuleId, sIdInstance, oData, bSingle) {
-    var oModule, oInstance;
+  function startSingleModule( oWrapper, sModuleId, sIdInstance, oData, bSingle ) {
+    var oModule;
     oModule = oModules[sModuleId];
-    if (bSingle && oWrapper.isModuleStarted(sModuleId)) {
-      oWrapper.stop(sModuleId);
+    if ( bSingle && oWrapper.isModuleStarted( sModuleId ) ) {
+      oWrapper.stop( sModuleId );
     }
-    if (!isTypeOf(oModule, sNotDefined)) {
-      oInstance = createInstance(sModuleId);
-      oModule.instances[sIdInstance] = oInstance;
-      oInstance.__instance_id__ = sIdInstance;
+    if ( !isTypeOf( oModule, sNotDefined ) ) {
+      createInstance( sModuleId, undefined, function ( oInstance ){
+        oModule.instances[sIdInstance] = oInstance;
+        oInstance.__instance_id__ = sIdInstance;
 
-      beforeInit(oInstance, oWrapper.oModifyInit, oData, bSingle);
+        beforeInit( oInstance, oWrapper.oModifyInit, oData, bSingle );
 
-      if (!isTypeOf(oData, sNotDefined)) {
-        oInstance.init(oData);
-      }
-      else {
-        oInstance.init();
-      }
+        if ( !isTypeOf( oData, sNotDefined ) ) {
+          oInstance.init( oData );
+        } else {
+          oInstance.init();
+        }
+      });
+    } else {
+      ErrorHandler.error( new Err(), fpThrowErrorModuleNotRegistered( sModuleId ) );
     }
-    else {
-      ErrorHandler.error(new Err(), fpThrowErrorModuleNotRegistered(sModuleId));
-    }
-    return oInstance;
   }
 
   /**
@@ -362,13 +427,10 @@
    * @param {Object} oSource
    * @private
    */
-  function simpleMerge(oTarget, oSource) {
-    var sKey;
-    for (sKey in oSource) {
-      if (ownProp(oSource, sKey)) {
-        oTarget[sKey] = oSource[sKey];
-      }
-    }
+  function simpleMerge( oTarget, oSource ) {
+    iterateObject( oSource , function ( oItem, sKey ) {
+      oTarget[sKey] = oSource[sKey];
+    } );
     return oTarget;
   }
 
@@ -376,43 +438,41 @@
    * Return a copy of the object.
    * @param {Object} oObject
    */
-  function clone(oObject) {
-    var oCopy, sAttr;
+  function clone( oObject ) {
+    var oCopy;
     // Handle null, undefined, DOM element, Event and jQuery objects, and all the objects that are instances of a constructor different from Object.
-    if (null == oObject ||      // Is null
-    !isTypeOf(oObject, sObjectType) ||  // Is not an object (primitive)
-    oObject.constructor.toString().indexOf('Object()') === -1 ||  // Is an instance
-    isEvent(oObject) ||   // Is an event
-    isJqueryObject(oObject) ||  // Is a jQuery object
-    ( oObject.nodeType && oObject.nodeType === 1 )) { // Is a DOM element
+    if ( null == oObject ||      // Is null
+    !isTypeOf( oObject, sObjectType ) ||  // Is not an object (primitive)
+    oObject.constructor.toString().indexOf( 'Object()' ) === -1 ||  // Is an instance
+    isEvent( oObject ) ||   // Is an event
+    isJqueryObject( oObject ) ||  // Is a jQuery object
+    ( oObject.nodeType && oObject.nodeType === 1 ) ) { // Is a DOM element
       return oObject;
     }
 
     // Handle Date
-    if (isInstanceOf(oObject, Date)) {
+    if ( isInstanceOf( oObject, Date ) ) {
       oCopy = new Date();
       oCopy.setTime(oObject.getTime());
       return oCopy;
     }
 
     // Handle Array
-    if (isInstanceOf(oObject, Array)) {
-      oCopy = slice(Array, 0);
+    if ( isInstanceOf( oObject, Array ) ) {
+      oCopy = copyArray( oObject );
       return oCopy;
     }
 
     // Handle Object
-    if (isInstanceOf(oObject, Object)) {
+    if ( isInstanceOf( oObject, Object ) ) {
       oCopy = {};
-      for (sAttr in oObject) {
-        if (ownProp(oObject, sAttr)) {
-          oCopy[sAttr] = clone(oObject[sAttr]);
-        }
-      }
+      iterateObject( oObject, function ( oItem, sKey ) {
+        oCopy[sKey] = clone(oItem);
+      } );
       return oCopy;
     }
 
-    throw new Err('Unable to copy obj! Its type isn\'t supported.');
+    throw new Err( 'Unable to copy object!' );
   }
 
   /**
@@ -424,14 +484,14 @@
    * @param {Function} fpMethod
    * @private
    */
-  function wrapMethod(oInstance, sName, sModuleId, fpMethod) {
-    oInstance[sName] = (function (sName, fpMethod) {
+  function wrapMethod( oInstance, sName, sModuleId, fpMethod ) {
+    oInstance[sName] = ( function ( sName, fpMethod ) {
       return function () {
-        var aArgs = slice(arguments, 0);
+        var aArgs = copyArray( arguments );
         try {
-          return fpMethod.apply(this, aArgs);
+          return fpMethod.apply( this, aArgs );
         }
-        catch (erError) {
+        catch ( erError ) {
           ErrorHandler.error(sModuleId, sName, erError);
           return _false_;
         }
@@ -439,14 +499,7 @@
     }(sName, fpMethod));
   }
 
-  /**
-   * Private object to save the channels for communicating event driven
-   * @type {{global: Object}}
-   * @private
-   */
-  oChannels = {
-    global: {}
-  };
+
 
   /**
    * subscribersByEvent return all the subscribers of the event in the channel.
@@ -456,14 +509,13 @@
    * @private
    */
   function subscribersByEvent(oChannel, sEventName) {
-    var aSubscribers = [],
-    sEvent;
+    var aSubscribers = [];
     if (!isTypeOf(oChannel, sNotDefined)) {
-      for (sEvent in oChannel) {
-        if (ownProp(oChannel, sEvent) && sEvent === sEventName) {
-          aSubscribers = oChannel[sEvent];
+      iterateObject( oChannel, function ( oItem, sKey ) {
+        if( sKey === sEventName ){
+          aSubscribers = oItem;
         }
-      }
+      } );
     }
     return aSubscribers;
   }
@@ -477,6 +529,7 @@
    * @private
    */
   Bus = {
+
     /**
      * subscribers return the array of subscribers to one channel and event.
      * @param {String} sChannelId
@@ -512,12 +565,10 @@
      * @private
      */
     _addSubscribers: function (oEventsCallbacks, sChannelId, oSubscriber) {
-      var sEvent;
-      for (sEvent in oEventsCallbacks) {
-        if (ownProp(oEventsCallbacks, sEvent)) {
-          this.subscribeTo(sChannelId, sEvent, oEventsCallbacks[sEvent], oSubscriber);
-        }
-      }
+      var self = this;
+      iterateObject( oEventsCallbacks, function ( oItem, sEvent ) {
+        self.subscribeTo(sChannelId, sEvent, oItem, oSubscriber);
+      });
     },
 
     /**
@@ -561,20 +612,18 @@
      * @return {Boolean}
      */
     subscribe: function (oSubscriber) {
-      var sChannelId, oEventsCallbacks = oSubscriber.events;
+      var self = this, oEventsCallbacks = oSubscriber.events;
       if (!oSubscriber || oEventsCallbacks === und) {
         return _false_;
       }
-      for (sChannelId in oEventsCallbacks) {
-        if (ownProp(oEventsCallbacks, sChannelId)) {
-          if (oChannels[sChannelId] === und) {
-            oChannels[sChannelId] = {};
-          }
-          this._addSubscribers(oEventsCallbacks[sChannelId], sChannelId, oSubscriber);
+      iterateObject( oEventsCallbacks, function ( oItem, sChannelId ) {
+        if( oChannels[sChannelId] === und ){
+          oChannels[sChannelId] = {};
         }
-      }
+        self._addSubscribers(oItem, sChannelId, oSubscriber);
+      } );
 
-      return _true_;
+      return true;
     },
 
     /**
@@ -609,20 +658,17 @@
      * @private
      */
     _removeSubscribersPerEvent: function (oEventsCallbacks, sChannelId, oSubscriber) {
-      var sEvent, aEventsParts, sChannel, sEventType, nUnsubscribed = 0;
-      for (sEvent in oEventsCallbacks) {
-        if (ownProp(oEventsCallbacks, sEvent)) {
-          aEventsParts = sEvent.split(':');
-
-          sChannel = sChannelId;
-          sEventType = sEvent;
-          if (aEventsParts[0] === 'global') {
-            sChannel = aEventsParts[0];
-            sEventType = aEventsParts[1];
-          }
-          nUnsubscribed += this._removeSubscribers(oChannels[sChannel][sEventType], oSubscriber);
+      var self = this, aEventsParts, sChannel, sEventType, nUnsubscribed = 0;
+      iterateObject( oEventsCallbacks, function ( oItem, sEvent ) {
+        aEventsParts = sEvent.split(':');
+        sChannel = sChannelId;
+        sEventType = sEvent;
+        if (aEventsParts[0] === 'global') {
+          sChannel = aEventsParts[0];
+          sEventType = aEventsParts[1];
         }
-      }
+        nUnsubscribed += self._removeSubscribers(oChannels[sChannel][sEventType], oSubscriber);
+      } );
       return nUnsubscribed;
     },
 
@@ -632,53 +678,32 @@
      * @return {Boolean}
      */
     unsubscribe: function (oSubscriber) {
-      var nUnsubscribed = 0, sChannelId, oEventsCallbacks = oSubscriber.events;
+      var self = this, nUnsubscribed = 0, oEventsCallbacks = oSubscriber.events;
       if (!oSubscriber || oEventsCallbacks === und) {
         return _false_;
       }
-
-      for (sChannelId in oEventsCallbacks) {
-        if (ownProp(oEventsCallbacks, sChannelId)) {
-          if (oChannels[sChannelId] === und) {
-            oChannels[sChannelId] = {};
-          }
-          nUnsubscribed = this._removeSubscribersPerEvent(oEventsCallbacks[sChannelId], sChannelId, oSubscriber);
+      iterateObject( oEventsCallbacks, function ( oItem, sChannelId) {
+        if (oChannels[sChannelId] === und) {
+          oChannels[sChannelId] = {};
         }
-      }
+        nUnsubscribed = self._removeSubscribersPerEvent(oItem, sChannelId, oSubscriber);
+      } );
 
       return nUnsubscribed > 0;
     },
+
     /**
      * Method to execute handlers
-     * @param oHandlerObject
-     * @param oData
+     * @param {Object} oHandlerObject
+     * @param {Object} oData
+     * @param {String} sChannelId
+     * @param {String} sEvent
      */
     _executeHandler: function ( oHandlerObject, oData, sChannelId, sEvent ) {
       oHandlerObject.handler.call(oHandlerObject.subscriber, oData);
       if (bDebug) {
         ErrorHandler.log(sChannelId, sEvent, oHandlerObject);
       }
-    },
-    /**
-     * Method to execute all the callbacks but without blocking the user interface.
-     * @param {Array<Module>} aSubscribers
-     * @param {Object} oData
-     * @param {String} sChannelId
-     * @param {String} sEvent
-     * @private
-     */
-    _avoidBlockUI: function (aSubscribers, oData, sChannelId, sEvent) {
-      var aSubs = slice(aSubscribers, 0);
-      _setTimeout(function recall() {
-        var nStart = +new Date();
-        do {
-          this._executeHandler( aSubs.shift(), oData, sChannelId, sEvent );
-        }
-        while (aSubs.length > 0 && ( +new Date() - nStart < 50 ));
-        if (aSubs.length > 0) {
-          _setTimeout(recall, 25);
-        }
-      }, 25);
     },
 
     /**
@@ -689,22 +714,16 @@
      * @return {Boolean}
      */
     publish: function (sChannelId, sEvent, oData) {
-      var aSubscribers = slice(this.subscribers(sChannelId, sEvent), 0),
+      var aSubscribers = copyArray( this.subscribers(sChannelId, sEvent) ),
       oSubscriber,
-      nLenSubscribers = aSubscribers.length,
-      oDataToPublish;
+      nLenSubscribers = aSubscribers.length;
       if (nLenSubscribers === 0) {
         return _false_;
       }
-      oDataToPublish = clone(oData);
-      if (bUnblockUI) {
-        this._avoidBlockUI(aSubscribers, oDataToPublish, sChannelId, sEvent);
-      } else {
-        while( !!(oSubscriber = aSubscribers.shift()) ){
-          this._executeHandler(oSubscriber, oDataToPublish, sChannelId, sEvent);
-        }
+      while( !!(oSubscriber = aSubscribers.shift()) ){
+        this._executeHandler(oSubscriber, oData, sChannelId, sEvent);
       }
-      return _true_;
+      return true;
     },
 
     /**
@@ -718,27 +737,6 @@
   };
 
   /**
-   * Traverse all the mapping systems to get a match.
-   * @param oMappingMaps
-   * @param sDependency
-   * @returns {*}
-   */
-  function getDependencyThroughAllMaps( oMappingMaps, sDependency ){
-    var sKey,
-    oMap,
-    oDependency;
-    for ( sKey in oMappingMaps ) {
-      if ( ownProp(oMappingMaps, sKey) ) {
-        oMap = oMappingMaps[sKey];
-        oDependency = oMap[sDependency];
-        if( oDependency ) {
-          return  oDependency;
-        }
-      }
-    }
-    return namespacing( sDependency );
-  }
-  /**
    * Inject dependencies creating modules
    * Look for dependencies in:
    * Hydra mappings
@@ -748,116 +746,125 @@
    * root
    * @param {String} sModuleId
    * @param {Array} aDependencies
-   * @returns {Object}
    */
   function dependencyInjector(sModuleId, aDependencies) {
     var sDependency,
     sPrefix,
-    aFinalDependencies = [],
-    oMapping = {
-      'bus': Bus,
-      'module': Hydra.module,
-      'log': ErrorHandler,
-      'api': Hydra,
-      'global': root,
-      'doc': root.document || null
-    },
-    oMappingMaps = {
-      '$$_': oMapping,            // Special Mapping,
-      '$': oMapping,
-      'pr_': oVars,              // Private Mapping
-      'hm_': oModules,          // Hydra Modules Mapping
-      'ns_': namespace || root, // Namespace Mapping
-      'gl_': root                // Global Mapping
-    },
+    aPromises = [],
+    nDependencies = 0,
     oMap,
     oDependency,
+    oPromise,
     oResult = {
       mapping: [],
       dependencies: []
     };
 
     aDependencies = (aDependencies !== und ? aDependencies : (oModules[sModuleId].dependencies || [])).concat();
+
     while ( !!(sDependency = aDependencies.shift()) ) {
+
       if ( isTypeOf( sDependency, 'string') ) {
-        oMap = oMappingMaps[ (sPrefix = sDependency.substr(0, 3) ) ] || oMappingMaps[ (sPrefix = sDependency.substr(0, 1) ) ] || (sPrefix = '') || root;
-        sDependency = sDependency.replace(sPrefix, '');
-        oDependency = oMap[sDependency];
-        if ( !oDependency ) {
-          oDependency = getDependencyThroughAllMaps( oMappingMaps, sDependency );
+        if ( sDependency.indexOf( '_' ) === 2 ){
+          sPrefix = sDependency.substr(0, 3);
+        }else if ( sDependency.indexOf( '$' ) === 0 ) {
+          sPrefix = sDependency.substr(0, 1);
+        }else{
+          sPrefix = '';
         }
-        aFinalDependencies.push( oDependency );
+        oMap = oMappingMaps[ sPrefix ] || oMappingMaps[ 'gl_' ];
+        sDependency = sDependency.replace(sPrefix, '');
+        oDependency = oMap.__map__[sDependency];
+        if ( !oDependency ) {
+          oDependency = getDependencyThroughAllMaps( sDependency );
+        }else{
+          oDependency = oMap.__resolveDI__( sDependency );
+        }
+
+        oResult.mapping.push( sDependency );
       }else{
-        aFinalDependencies.push( sDependency );
+        oDependency = getPromise();
+        oDependency.resolve( sDependency );
+        oResult.mapping.push( oModules[sModuleId].dependencies[nDependencies] );
       }
-      oResult.mapping.push( sDependency );
+      aPromises.push( oDependency );
     }
-    oResult.dependencies = aFinalDependencies;
-    return oResult;
+    oPromise = getPromise();
+
+    When.apply(When, aPromises ).then( function(){
+      oPromise.resolve.apply( oPromise, [oResult.mapping].concat( copyArray( arguments ) ) );
+    } );
+    return oPromise;
   }
 
   /**
    * Add common properties and methods to avoid repeating code in modules
    * @param {String} sModuleId
    * @param {Array} aDependencies
+   * @param {Function} fpCallback
    * @private
    */
-  function addPropertiesAndMethodsToModule(sModuleId, aDependencies) {
-    var oModule,
-    fpInitProxy,
-    oDependencies = dependencyInjector(sModuleId, aDependencies);
-    oModule = oModules[sModuleId].creator.apply(oModules[sModuleId], oDependencies.dependencies);
-    oModule.dependencies = aDependencies;
-    oModule.resolvedDependencies = oDependencies.map;
-    oModule.__module_id__ = sModuleId;
-    fpInitProxy = oModule.init || nullFunc;
-    // Provide compatibility with old versions of Hydra.js
-    oModule.__action__ = oModule.__sandbox__ = Bus;
-    oModule.events = oModule.events || {};
-    oModule.init = function () {
-      var aArgs = slice(arguments, 0).concat(oVars);
-      Bus.subscribe(oModule);
-      return fpInitProxy.apply(this, aArgs);
-    };
-    oModule.handleAction = function (oNotifier) {
-      var fpCallback = this.events[oNotifier.type];
-      if (isTypeOf(fpCallback, sNotDefined)) {
-        return;
-      }
-      fpCallback.call(this, oNotifier);
-    };
-    // Provide compatibility with old Hydra versions which used to use "destroy" as onDestroy hook.
-    oModule.onDestroy = oModule.onDestroy || oModule.destroy || function () {
-    };
-    oModule.destroy = function () {
-      this.onDestroy();
-      Bus.unsubscribe(oModule);
-      delete oModules[sModuleId].instances[oModule.__instance_id__];
-    };
-    return oModule;
+  function addPropertiesAndMethodsToModule(sModuleId, aDependencies, fpCallback) {
+    var oPromise;
+    function success( mapping ){
+      var oModule, fpInitProxy;
+      oModule = oModules[sModuleId].creator.apply( oModules[sModuleId], [].slice.call( arguments, 1 ) );
+      oModule.dependencies = aDependencies;
+      oModule.resolvedDependencies = mapping;
+      oModule.__module_id__ = sModuleId;
+      fpInitProxy = oModule.init || nullFunc;
+      // Provide compatibility with old versions of Hydra.js
+      oModule.__action__ = oModule.__sandbox__ = Bus;
+      oModule.events = oModule.events || {};
+      oModule.init = function () {
+        var aArgs = copyArray( arguments ).concat(oVars);
+        Bus.subscribe(oModule);
+        return fpInitProxy.apply(this, aArgs);
+      };
+      oModule.handleAction = function (oNotifier) {
+        var fpCallback = this.events[oNotifier.type];
+        if (isTypeOf(fpCallback, sNotDefined)) {
+          return;
+        }
+        fpCallback.call(this, oNotifier);
+      };
+      // Provide compatibility with old Hydra versions which used to use "destroy" as onDestroy hook.
+      oModule.onDestroy = oModule.onDestroy || oModule.destroy || function () {
+      };
+      oModule.destroy = function () {
+        this.onDestroy();
+        Bus.unsubscribe(oModule);
+        delete oModules[sModuleId].instances[oModule.__instance_id__];
+      };
+      fpCallback(oModule);
+    }
+    oPromise = dependencyInjector(sModuleId, aDependencies);
+    oPromise.then(function () {
+      success.apply(success, arguments);
+    });
   }
 
   /**
    * createInstance is the method that will create the module instance and wrap the method if needed.
    * @param {String} sModuleId
-   * @param {Array} aDependencies
-   * @return {Module} Module instance
+   * @param {Array} [aDependencies]
+   * @param {Function} fpCallback
    * @private
    */
-  function createInstance(sModuleId, aDependencies) {
-    var oInstance, sName;
+  function createInstance(sModuleId, aDependencies, fpCallback) {
     if (isTypeOf(oModules[sModuleId], sNotDefined)) {
-      fpThrowErrorModuleNotRegistered(sModuleId, _true_);
+      fpThrowErrorModuleNotRegistered(sModuleId, true);
     }
-    oInstance = addPropertiesAndMethodsToModule(sModuleId, aDependencies);
-    if (!bDebug) {
-      for (sName in oInstance) {
-        if (ownProp(oInstance, sName) && isFunction(oInstance[sName])) {
-          wrapMethod(oInstance, sName, sModuleId, oInstance[sName]);
-        }
+    addPropertiesAndMethodsToModule(sModuleId, aDependencies, function ( oInstance ){
+      if (!bDebug) {
+        iterateObject( oInstance, function ( oItem, sName ) {
+          if( isFunction( oItem ) ) {
+            wrapMethod(oInstance, sName, sModuleId, oInstance[sName]);
+          }
+        } );
       }
-    }
-    return oInstance;
+      fpCallback(oInstance);
+    });
   }
 
   /**
@@ -923,7 +930,7 @@
     register: function (sModuleId, aDependencies, fpCreator) {
       if (isFunction(aDependencies)) {
         fpCreator = aDependencies;
-        aDependencies = [ Bus, Hydra.module, ErrorHandler, Hydra ];
+        aDependencies = [ Bus, oModule, ErrorHandler, Hydra ];
       }
       oModules[sModuleId] = new FakeModule(sModuleId, fpCreator);
 
@@ -943,7 +950,7 @@
       oFinalModule.__super__.__instance__ = oModuleBase;
       oFinalModule.__super__.__call__ = function (sKey, aArgs) {
         var oObject = this;
-        while (ownProp(oObject, sKey) === _false_) {
+        while (oObject.hasOwnProperty(sKey) === _false_) {
           oObject = oObject.__instance__.__super__;
         }
         return oObject[sKey].apply(oFinalModule, aArgs);
@@ -959,7 +966,7 @@
      */
     _callInSuper: function (fpCallback) {
       return function () {
-        var aArgs = slice(arguments, 0);
+        var aArgs = copyArray( arguments );
         fpCallback.apply(this, aArgs);
       };
     },
@@ -972,15 +979,12 @@
      * @private
      */
     _mergeModuleExtended: function (oFinalModule, oModuleExtended) {
-      var sKey;
-      for (sKey in oModuleExtended) {
-        if (ownProp(oModuleExtended, sKey)) {
-          if (!isTypeOf(oFinalModule.__super__, sNotDefined) && isFunction(oFinalModule[sKey])) {
-            oFinalModule.__super__[sKey] = (this._callInSuper(oFinalModule[sKey]));
-          }
-          oFinalModule[sKey] = oModuleExtended[sKey];
+      iterateObject( oModuleExtended, function ( oItem, sKey ) {
+        if (!isTypeOf(oFinalModule.__super__, sNotDefined) && isFunction(oFinalModule[sKey])) {
+          oFinalModule.__super__[sKey] = (this._callInSuper(oFinalModule[sKey]));
         }
-      }
+        oFinalModule[sKey] = oItem;
+      } );
     },
 
     /**
@@ -991,14 +995,11 @@
      * @private
      */
     _mergeModuleBase: function (oFinalModule, oModuleBase) {
-      var sKey;
-      for (sKey in oModuleBase) {
-        if (ownProp(oModuleBase, sKey)) {
-          if (sKey !== '__super__') {
-            oFinalModule[sKey] = oModuleBase[sKey];
-          }
+      iterateObject( oModuleBase, function ( oItem, sKey ) {
+        if (sKey !== '__super__') {
+          oFinalModule[sKey] = oItem;
         }
-      }
+      } );
     },
 
     /**
@@ -1028,7 +1029,7 @@
     setInstance: function (sModuleId, sIdInstance, oInstance) {
       var oModule = oModules[sModuleId];
       if (!oModule) {
-        fpThrowErrorModuleNotRegistered(sModuleId, _true_);
+        fpThrowErrorModuleNotRegistered(sModuleId, true);
       }
       oModule.instances[sIdInstance] = oInstance;
       return oModule;
@@ -1077,13 +1078,13 @@
     _multiModuleStart: function (aModulesIds, sIdInstance, oData, bSingle) {
       var aInstancesIds, aData, aSingle, nIndex, nLenModules, sModuleId;
       if (isArray(sIdInstance)) {
-        aInstancesIds = slice(sIdInstance, 0);
+        aInstancesIds = copyArray( sIdInstance );
       }
       if (isArray(oData)) {
-        aData = slice(oData, 0);
+        aData = copyArray( oData );
       }
       if (isArray(bSingle)) {
-        aSingle = slice(bSingle, 0);
+        aSingle = copyArray( bSingle );
       }
       for (nIndex = 0, nLenModules = aModulesIds.length; nIndex < nLenModules; nIndex++) {
         sModuleId = aModulesIds[nIndex];
@@ -1118,15 +1119,15 @@
      * as single module start.
      * @member Module.prototype
      * @param {String|Array} oModuleId
-     * @param {String|Array} oIdInstance
-     * @param {Object|Array} oData
-     * @param {Boolean|Array} oSingle
+     * @param {String|Array} [oIdInstance]
+     * @param {Object|Array} [oData]
+     * @param {Boolean|Array} [oSingle]
      */
     start: function (oModuleId, oIdInstance, oData, oSingle) {
       var bStartMultipleModules = isArray(oModuleId);
 
       if (bStartMultipleModules) {
-        this._multiModuleStart(slice(oModuleId, 0), oIdInstance, oData, oSingle);
+        this._multiModuleStart( copyArray( oModuleId ), oIdInstance, oData, oSingle);
       }
       else {
         this._singleModuleStart(oModuleId, oIdInstance, oData, oSingle);
@@ -1138,44 +1139,49 @@
      * @param sModuleDecorated
      * @param aDependencies
      * @param fpDecorator
-     * @returns {null}
+     * @returns {*}
      */
     extend: function (sBaseModule, sModuleDecorated, aDependencies, fpDecorator) {
-      var oModule = oModules[sBaseModule], oDecorated, oInstance;
+      var oModule = oModules[sBaseModule], oDecorated, oPromise;
+      oPromise = getPromise();
       if (!oModule) {
         ErrorHandler.log(fpThrowErrorModuleNotRegistered(sBaseModule));
-        return _null_;
+        oPromise.resolve( null );
+        return oPromise;
       }
-      oInstance = createInstance(sBaseModule);
-      if (isTypeOf(sModuleDecorated, sFunctionType)) {
-        fpDecorator = sModuleDecorated;
-        sModuleDecorated = sBaseModule;
-        aDependencies = [Bus, Hydra.module, Hydra.errorHandler(), Hydra];
-      }
-      if (isTypeOf(aDependencies, sFunctionType)) {
-        fpDecorator = aDependencies;
-        aDependencies = [Bus, Hydra.module, Hydra.errorHandler(), Hydra];
-      }
-      aDependencies.push(oInstance);
-      oDecorated = fpDecorator.apply(fpDecorator, aDependencies);
 
-      oModules[sModuleDecorated] = new FakeModule(sModuleDecorated, function () {
-        // If we extend the module with the different name, we
-        // create proxy class for the original methods.
-        var oMerge = {};
-        oMerge = simpleMerge(oMerge, oInstance);
-        oMerge = simpleMerge(oMerge, oDecorated);
-        oMerge = simpleMerge(oMerge, {
-          __super__: {
-            __call__: function (sKey, aArgs) {
-              return oInstance[sKey].apply(oMerge, aArgs);
+      createInstance(sBaseModule, undefined, function ( oInstance ){
+        if (isTypeOf(sModuleDecorated, sFunctionType)) {
+          fpDecorator = sModuleDecorated;
+          sModuleDecorated = sBaseModule;
+          aDependencies = [Bus, oModule, Hydra.errorHandler(), Hydra];
+        }
+        if (isTypeOf(aDependencies, sFunctionType)) {
+          fpDecorator = aDependencies;
+          aDependencies = [Bus, oModule, Hydra.errorHandler(), Hydra];
+        }
+        aDependencies.push(oInstance);
+        oDecorated = fpDecorator.apply(fpDecorator, aDependencies);
+
+        oModules[sModuleDecorated] = new FakeModule(sModuleDecorated, function () {
+          // If we extend the module with the different name, we
+          // create proxy class for the original methods.
+          var oMerge = {};
+          oMerge = simpleMerge(oMerge, oInstance);
+          oMerge = simpleMerge(oMerge, oDecorated);
+          oMerge = simpleMerge(oMerge, {
+            __super__: {
+              __call__: function (sKey, aArgs) {
+                return oInstance[sKey].apply(oMerge, aArgs);
+              }
             }
-          }
+          });
+          return oMerge;
         });
-        return oMerge;
+        oModules[sModuleDecorated].dependencies = aDependencies;
+        oPromise.resolve( oModules[sModuleDecorated] );
       });
-      oModules[sModuleDecorated].dependencies = aDependencies;
-      return oModules[sModuleDecorated];
+      return oPromise;
     },
     /**
      * Alias decorate to extend modules.
@@ -1207,15 +1213,12 @@
      * @member Module.prototype
      */
     startAll: function () {
-      var sModuleId, oModule;
-      for (sModuleId in oModules) {
-        if (ownProp(oModules, sModuleId)) {
-          oModule = oModules[sModuleId];
-          if (!isTypeOf(oModule, sNotDefined)) {
-            this.start(sModuleId, generateUniqueKey());
-          }
+      var self = this;
+      iterateObject( oModules, function ( oModule, sModuleId ) {
+        if (!isTypeOf(oModule, sNotDefined)) {
+          self.start(sModuleId, generateUniqueKey());
         }
-      }
+      } );
     },
 
     /**
@@ -1225,17 +1228,11 @@
      * @private
      */
     _multiModuleStop: function (oModule) {
-      var sKey,
-      oInstances = oModule.instances,
-      oInstance;
-      for (sKey in oInstances) {
-        if (ownProp(oInstances, sKey)) {
-          oInstance = oInstances[sKey];
-          if (!isTypeOf(oModule, sNotDefined) && !isTypeOf(oInstance, sNotDefined)) {
-            oInstance.destroy();
-          }
+      iterateObject( oModule.instances, function ( oInstance ) {
+        if (!isTypeOf(oModule, sNotDefined) && !isTypeOf(oInstance, sNotDefined)) {
+          oInstance.destroy();
         }
-      }
+      } );
       oModule.instances = {};
     },
 
@@ -1275,7 +1272,7 @@
       else {
         this._multiModuleStop(oModule);
       }
-      return _true_;
+      return true;
     },
     /**
      * Loops over instances of modules to stop them.
@@ -1285,12 +1282,10 @@
      * @private
      */
     _stopOneByOne: function (oInstances, sModuleId) {
-      var sInstanceId;
-      for (sInstanceId in oInstances) {
-        if (ownProp(oInstances, sInstanceId)) {
-          this.stop(sModuleId, sInstanceId);
-        }
-      }
+      var self = this;
+      iterateObject( oInstances, function ( oItem, sInstanceId ) {
+        self.stop(sModuleId, sInstanceId);
+      } );
     },
 
     /**
@@ -1298,12 +1293,12 @@
      * @member Module.prototype
      */
     stopAll: function () {
-      var sModuleId;
-      for (sModuleId in oModules) {
-        if (ownProp(oModules, sModuleId) && !isTypeOf(oModules[sModuleId], sNotDefined)) {
-          this._stopOneByOne(oModules[sModuleId].instances, sModuleId);
+      var self = this;
+      iterateObject( oModules, function ( oModule, sModuleId ) {
+        if( !isTypeOf( oModule, sNotDefined) ) {
+          self._stopOneByOne( oModule.instances, sModuleId );
         }
-      }
+      } );
     },
 
     /**
@@ -1316,7 +1311,7 @@
     _delete: function (sModuleId) {
       if (!isTypeOf(oModules[sModuleId], sNotDefined)) {
         delete oModules[sModuleId];
-        return _true_;
+        return true;
       }
       return _false_;
     },
@@ -1330,7 +1325,7 @@
     remove: function (sModuleId) {
       var oModule = oModules[sModuleId];
       if (isTypeOf(oModule, sNotDefined)) {
-        return _null_;
+        return null;
       }
       if (!isTypeOf(oModule, sNotDefined)) {
         try {
@@ -1338,175 +1333,293 @@
         }
         finally {
           this._delete(sModuleId);
+          createMapping( oMappingMaps, 'hm_', oModules );
         }
       }
-      return _null_;
+      return null;
+    },
+
+    /**
+     * Stop all the running modules and cleans all the stored modules.
+     */
+    reset: function () {
+      oModule.stopAll();
+      oModules = {};
+      createMapping( oMappingMaps, 'hm_', oModules );
     }
   };
 
   /**
-   * getErrorHandler is a method to gain access to the private ErrorHandler constructor.
-   * @return {Object|Function} ErrorHandler class
-   * @private
+   * Promise is a class that must/can be used to defer execution of one or some callbacks when one condition (normally some asynchronous callbacks that are depending one of other)
+   * @class Promise
+   * @constructor
+   * @name Promise
    */
-  function getErrorHandler() {
-    return ErrorHandler;
-  }
+  Promise = function () {
+    // Pending callbacks
+    this.aPending = [];
+    this.bCompleted = false;
+    this.sType = '';
+    this.oResult = null;
+
+    // Must be called when something finished successfully
+    this.resolve = getPromiseCallbacks(this, 'resolve');
+    // Must be called when something fails
+    this.reject = getPromiseCallbacks(this, 'reject');
+  };
 
   /**
-   * setErrorHandler is a method to set the ErrorHandler to a new object to add more logging logic.
-   * @param {Object|Function} oErrorHandler
+   * Adds new callbacks to execute when the promise has been completed
+   * @member Promise.prototype
+   * @param {Function} fpSuccess
+   * @param {Function} fpFailure
+   * @return {Promise} Promise instance
+   */
+  Promise.prototype.then = function ( fpSuccess, fpFailure ) {
+    if(this.bCompleted){
+      if(this.sType === 'resolve'){
+        fpSuccess.apply(fpSuccess, this.oResult);
+      }else{
+        fpFailure.apply(fpFailure, this.oResult);
+      }
+    }else{
+      this.aPending.push( { resolve: fpSuccess, reject: fpFailure} );
+    }
+    return this;
+  };
+
+  /**
+   * Sugar function to create a new Deferred object.
+   * When expects Promise objects to be added to the Deferred object [Promise1, Promise2,...PromiseN]
+   * If one of the arguments is not a Promise When assume that we want to complete the Deferred object
    * @private
    */
-  function setErrorHandler(oErrorHandler) {
-    ErrorHandler = oErrorHandler;
-  }
+  When = function () {
+    var aArgs, nArg, nLenArgs, oPromise, oArg, oData, aSolutions;
+    aArgs = copyArray( arguments );
+    nLenArgs = aArgs.length;
+    oPromise = getPromise();
+    oData = {
+      nLenPromisesResolved: 0
+    };
+    aSolutions = [];
 
+    for ( nArg = 0; nArg < nLenArgs; nArg++ ) {
+      oArg = aArgs[nArg];
+      oArg.then(getThenCallbacks(nArg, 'resolve', oData, nLenArgs, oPromise, aSolutions),
+      getThenCallbacks(nArg, 'reject', oData, nLenArgs, oPromise, aSolutions));
+    }
+
+    return oPromise;
+  };
+  oModule = new Module();
   /**
    * Hydra is the api that will be available to use by developers
    * @constructor
    * @class Hydra
    * @name Hydra
    */
-  Hydra = function () {
-  };
+  Hydra =  {
+    /**
+     * Version number of Hydra.
+     * @member Hydra
+     * @type {String}
+     * @static
+     */
+    version: '3.9.0',
 
-  /**
-   * Version number of Hydra.
-   * @member Hydra
-   * @type {String}
-   * @static
-   */
-  Hydra.version = sVersion;
+    /**
+     * bus is a singleton instance of the bus to subscribe and publish content in channels.
+     * @member Hydra
+     * @type {Object}
+     */
+    bus: Bus,
 
-  /**
-   * bus is a singleton instance of the bus to subscribe and publish content in channels.
-   * @member Hydra
-   * @type {Object}
-   */
-  Hydra.bus = Bus;
+    /**
+     * Returns the actual ErrorHandler
+     * @member Hydra
+     * @type {Function}
+     * @static
+     */
+    errorHandler: function () {
+      return ErrorHandler;
+    },
 
-  /**
-   * Returns the actual ErrorHandler
-   * @member Hydra
-   * @type {Function}
-   * @static
-   */
-  Hydra.errorHandler = getErrorHandler;
+    /**
+     * Sets and overwrites the ErrorHandler object to log errors and messages
+     * @member Hydra
+     * @type {Function}
+     * @static
+     */
+    setErrorHandler: function (oErrorHandler) {
+      ErrorHandler = oErrorHandler;
+    },
 
-  /**
-   * Sets and overwrites the ErrorHandler object to log errors and messages
-   * @member Hydra
-   * @type {Function}
-   * @static
-   */
-  Hydra.setErrorHandler = setErrorHandler;
+    /**
+     * Returns the constructor of Promise object
+     * @static
+     * @member Hydra
+     * @type {Promise}
+     */
+    Promise: Promise,
 
-  /**
-   * Return a singleton of Module
-   * @member Hydra
-   * @type {Module}
-   * @static
-   */
-  Hydra.module = new Module();
+    /**
+     * Returns the constructor of Deferred object
+     * @static
+     * @member Hydra
+     * @type {Deferred}
+     */
+    Deferred: Promise,
+    /**
+     * Sugar method to generate Deferred objects in a simple way
+     * @static
+     * @member Hydra
+     */
+    when: When,
 
-  /**
-   * Change the unblock UI mode to on/off
-   * @Member Hydra
-   * @type {Function}
-   * @static
-   */
-  Hydra.setUnblockUI = setUnblockUI;
+    /**
+     * Return a singleton of Module
+     * @member Hydra
+     * @type {Module}
+     * @static
+     */
+    module: oModule,
 
-  /**
-   * Change the debug mode to on/off
-   * @member Hydra
-   * @type {Function}
-   * @static
-   */
-  Hydra.setDebug = setDebug;
+    /**
+     * Change the debug mode to on/off
+     * @member Hydra
+     * @type {Function}
+     * @static
+     */
+    setDebug: setDebug,
 
-  /**
-   * Get the debug status
-   * @member Hydra
-   * @type {Function}
-   * @static
-   */
-  Hydra.getDebug = function () {
-    return bDebug;
-  };
+    /**
+     * Get the debug status
+     * @member Hydra
+     * @type {Function}
+     * @static
+     */
+    getDebug: function () {
+      return bDebug;
+    },
 
-  /**
-   * Extends Hydra object with new functionality
-   * @member Hydra
-   * @param {String} sIdExtension
-   * @param {Object} oExtension
-   * @static
-   */
-  Hydra.extend = function (sIdExtension, oExtension) {
-    if (isTypeOf(this[sIdExtension], sNotDefined)) {
-      this[sIdExtension] = oExtension;
-    }
-    else {
-      this[sIdExtension] = simpleMerge(this[sIdExtension], oExtension);
-    }
-  };
-  Hydra.resolveDependencies = dependencyInjector;
-  /**
-   * Adds an alias to parts of Hydra
-   * @member Hydra
-   * @param {String} sOldName
-   * @param {Object} oNewContext
-   * @param {String} sNewName
-   * @return {Boolean}
-   * @static
-   */
-  Hydra.noConflict = function (sOldName, oNewContext, sNewName) {
-    if (!isTypeOf(this[sOldName], sNotDefined)) {
-      oNewContext[sNewName] = this[sOldName];
-      return _true_;
-    }
-    return _false_;
-  };
+    /**
+     * Extends Hydra object with new functionality
+     * @member Hydra
+     * @param {String} sIdExtension
+     * @param {Object} oExtension
+     * @static
+     */
+    extend: function (sIdExtension, oExtension) {
+      if (isTypeOf(this[sIdExtension], sNotDefined)) {
+        this[sIdExtension] = oExtension;
+      }
+      else {
+        this[sIdExtension] = simpleMerge(this[sIdExtension], oExtension);
+      }
+    },
 
-  /**
-   * Merges an object to oModifyInit that will be executed before executing the init.
-   * {
+    /**
+     * Resolve dependencies of modules
+     */
+    resolveDependencies: dependencyInjector,
+    /**
+     * Adds an alias to parts of Hydra
+     * @member Hydra
+     * @param {String} sOldName
+     * @param {Object} oNewContext
+     * @param {String} sNewName
+     * @return {Boolean}
+     * @static
+     */
+    noConflict: function (sOldName, oNewContext, sNewName) {
+      if (!isTypeOf(this[sOldName], sNotDefined)) {
+        oNewContext[sNewName] = this[sOldName];
+        return true;
+      }
+      return _false_;
+    },
+    /**
+     * Merges an object to oModifyInit that will be executed before executing the init.
+     * {
    *    'property_in_module_to_check': function(oModule){} // Callback to execute if the property exist
    * }
-   * @type {Function}
-   * @param {Object} oVar
-   */
-  Hydra.addExtensionBeforeInit = function (oVar) {
-
-    Hydra.module.oModifyInit = simpleMerge(Hydra.module.oModifyInit, oVar);
+     * @type {Function}
+     * @param {Object} oVar
+     */
+    addExtensionBeforeInit: function (oVar) {
+      oModule.oModifyInit = simpleMerge(oModule.oModifyInit, oVar);
+    },
+    /**
+     * To be used about extension, it will return a deep copy of the Modules object to avoid modifying the original
+     * object.
+     * @returns {Object}
+     */
+    getCopyModules: function () {
+      return clone(oModules);
+    },
+    /**
+     * To be used about extension, it will return a deep copy of the Channels object to avoid modifying the original
+     * object.
+     * @returns {Object}
+     */
+    getCopyChannels: function () {
+      return clone(oChannels);
+    },
+    /**
+     * Sets the global namespace
+     * @param nsp
+     */
+    setNamespace: function (nsp) {
+      namespace = nsp;
+    },
+    /**
+     * Adds a new mapping to be used by the dependency injection system.
+     * @param {String} sPrefix
+     * @param {Object} oMapping
+     * @param {Function} fpResolveDI
+     */
+    addMapping: function ( sPrefix, oMapping, fpResolveDI ) {
+      var oMap = oMappingMaps[sPrefix];
+      if( oMap === und ){
+        createMapping( oMappingMaps, sPrefix, oMapping, fpResolveDI );
+      }else{
+        simpleMerge( oMappingMaps[sPrefix].__map__, oMapping );
+      }
+    },
+    /**
+     * Adds an async mapping to be used by the dependency injection system.
+     * @param {String} sPrefix
+     * @param {Object} oMapping
+     * @param {Function} fpCallback -> This callback should return a promise.
+     */
+    addAsyncMapping: function ( sPrefix, oMapping, fpCallback )  {
+      this.addMapping( sPrefix, oMapping, function ( sDependency ) {
+        return fpCallback.call( oMapping, sDependency );
+      });
+    }
   };
 
   /**
-   * To be used about extension, it will return a deep copy of the Modules object to avoid modifying the original
-   * object.
-   * @returns {Object}
+   * Special mapping to get easily the more important parts of Hydra and other that are common to all the modules.
+   * @type {Object}
    */
-  Hydra.getCopyModules = function () {
-    return clone(oModules);
+  oMapping = {
+    'bus': Bus,
+    'module': oModule,
+    'log': ErrorHandler,
+    'api': Hydra,
+    'global': root,
+    'doc': root.document || null
   };
 
-  /**
-   * To be used about extension, it will return a deep copy of the Channels object to avoid modifying the original
-   * object.
-   * @returns {Object}
-   */
-  Hydra.getCopyChannels = function () {
-    return clone(oChannels);
-  };
+  createMapping( oMappingMaps, '$$_', oMapping );
+  createMapping( oMappingMaps, '$', oMapping );
+  createMapping( oMappingMaps, 'pr_', oVars );
+  createMapping( oMappingMaps, 'hm_', oModules );
+  createMapping( oMappingMaps, 'ns_', namespace || root );
+  createMapping( oMappingMaps, 'gl_', root );
 
-  /**
-   * Sets the global namespace
-   * @param nsp
-   */
-  Hydra.setNamespace = function (nsp) {
-    namespace = nsp;
-  };
   /**
    * Module to be stored, adds two methods to start and extend modules.
    * @param {String} sModuleId
@@ -1536,7 +1649,7 @@
      * @returns {FakeModule}
      */
     start: function (oData) {
-      Hydra.module.start(this.sModuleId, oData);
+      oModule.start(this.sModuleId, oData);
       return this;
     },
 
@@ -1547,7 +1660,7 @@
      * @returns {FakeModule}
      */
     extend: function (oSecondParameter, oThirdParameter) {
-      Hydra.module.extend(this.sModuleId, oSecondParameter, oThirdParameter);
+      oModule.extend(this.sModuleId, oSecondParameter, oThirdParameter);
       return this;
     },
 
@@ -1556,7 +1669,7 @@
      * @returns {FakeModule}
      */
     stop: function () {
-      Hydra.module.stop(this.sModuleId);
+      oModule.stop(this.sModuleId);
       return this;
     }
   };
@@ -1573,4 +1686,4 @@
       return Hydra;
     });
   }
-}.call(this));
+}(this));
