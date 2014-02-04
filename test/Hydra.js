@@ -208,44 +208,41 @@
 
     describe('Remove a module', function () {
       beforeEach( function () {
-        sinon.spy( Hydra.module, '_delete' );
+        Hydra.module.reset();
       });
 
       afterEach( function () {
-        Hydra.module._delete.restore();
+        Hydra.module.reset();
       });
 
-      it('should not call the delete native if the module is not registered before remove it', function () {
+      it('should not remove the module test if we try to remove the module test2', function () {
+        var sModuleId = 'test'
+          , sModuleDontExist = 'test2'
+          , sContainerId = 'test';
+
+        Hydra.module.register('test', function () {
+          return {}
+        });
+        expect( Object.keys( Hydra.getCopyModules()).length ).toEqual( 1 );
+
+        Hydra.module.remove(sModuleDontExist, sContainerId);
+
+        expect( Object.keys( Hydra.getCopyModules()).length ).toEqual( 1 );
+      });
+
+      it('should remove the module test if we remove it', function () {
         var sModuleId = 'test'
         , sContainerId = 'test';
-        Hydra.module.remove(sModuleId, sContainerId);
 
-        expect( Hydra.module._delete.callCount ).toEqual( 0 );
-      });
+        Hydra.module.register(sModuleId, function () {
+          return {};
+        });
 
-      it('should call the delete native one time if the module is registered before remove it', function () {
-        var sModuleId = 'test'
-        , sContainerId = 'test'
-        , fpModuleCreator = function () {
-          return {
-            init: function () {
-
-            },
-            handleAction: function () {
-
-            },
-            destroy: function () {
-
-            }
-          }
-        };
-
-        Hydra.module.register(sModuleId, fpModuleCreator);
+        expect( Object.keys( Hydra.getCopyModules()).length ).toEqual( 1 );
 
         Hydra.module.remove(sModuleId, sContainerId);
 
-        expect( Hydra.module._delete.callCount ).toEqual( 1 );
-
+        expect( Object.keys( Hydra.getCopyModules()).length ).toEqual( 0 );
       });
 
     });
@@ -460,19 +457,32 @@
     describe('Stop module/s', function () {
 
       it('should not call the destroy method if the module is registered but not started', function () {
-        var sModuleId = 'test'
+
+        var oMod
+        , sModuleId = 'test'
         , sContainerId = 'test'
-        , fpDestroyStub;
+        , fpDestroyStub = sinon.stub()
+        , flag = false;
 
-        Hydra.module.register(sModuleId, function () {
-          return {
-            init: function () {
+        runs( function () {
+          Hydra.module.register(sModuleId, function () {
+            return {
+              init: function () {
+              },
+              onDestroy: fpDestroyStub
             }
-          }
+          });
         });
-        Hydra.module.getModule(sModuleId, sContainerId, function ( oModule ) {
-          fpDestroyStub = sinon.stub(oModule.instances[sContainerId], 'destroy');
 
+        waits( function () {
+          Hydra.module.getModule(sModuleId, sContainerId, function ( oModule ) {
+            oMod = oModule;
+            flag = true;
+          });
+          return flag;
+        }, 'It should resolve the module', 1000);
+
+        runs( function () {
           Hydra.module.remove(sModuleId, sContainerId);
 
           Hydra.module.stop(sModuleId, sContainerId);
@@ -484,19 +494,31 @@
       });
 
       it('should call the destroy method one time if the module is registered and started', function () {
-        var sModuleId = 'test'
+        var oMod
+        , sModuleId = 'test'
         , sContainerId = 'test'
-        , fpDestroyStub;
+        , fpDestroyStub = sinon.stub()
+        , flag = false;
 
-        Hydra.module.register(sModuleId, function () {
-          return {
-            init: function () {
+        runs( function () {
+          Hydra.module.register(sModuleId, function () {
+            return {
+              init: function () {
+              },
+              onDestroy: fpDestroyStub
             }
-          }
+          });
         });
-        Hydra.module.getModule(sModuleId, sContainerId, function ( oModule ) {
-          fpDestroyStub = sinon.stub(oModule.instances[sContainerId], 'destroy');
 
+        waitsFor(function () {
+          Hydra.module.getModule(sModuleId, sContainerId, function ( oModule ) {
+            oMod = oModule;
+            flag = true;
+          });
+          return flag;
+        }, 'It should resolve the module', 1000);
+
+        runs( function () {
           Hydra.module.stop(sModuleId, sContainerId);
 
           expect( fpDestroyStub.calledOnce ).toBeTruthy();
@@ -510,30 +532,52 @@
     describe('Stop all modules', function () {
 
       it('should call the destroy method of the two registered modules', function () {
-        var sModuleId = 'test'
+        var oMod1
+        , oMod2
+        , sModuleId = 'test'
+        , sModuleId2 = 'test2'
         , sContainerId_1 = 'test'
         , sContainerId_2 = 'test2'
-        , fpDestroyStub1
-        , fpDestroyStub2;
+        , fpDestroyStub1 = sinon.stub()
+        , fpDestroyStub2 = sinon.stub()
+        , flag = false;
 
-        Hydra.module.register(sModuleId, function () {
-          return {
-            init: function () {
+        runs( function () {
+          Hydra.module.register(sModuleId, function () {
+            return {
+              init: function () {
+              },
+              onDestroy: fpDestroyStub1
             }
-          }
-        });
-        Hydra.module.getModule(sModuleId, sContainerId_1, function ( oModule1 ) {
-          fpDestroyStub1 = sinon.stub(oModule1.instances[sContainerId_1], 'destroy');
-
-          Hydra.module.getModule(sModuleId, sContainerId_2, function ( oModule2 ) {
-            fpDestroyStub2 = sinon.stub(oModule2.instances[sContainerId_2], 'destroy');
           });
+          Hydra.module.register(sModuleId2, function () {
+            return {
+              init: function () {
+              },
+              onDestroy: fpDestroyStub2
+            }
+          });
+        });
+
+        waitsFor( function () {
+          Hydra.module.getModule(sModuleId, sContainerId_1, function ( oModule1 ) {
+            oMod1 = oModule1;
+            Hydra.module.getModule(sModuleId2, sContainerId_2, function ( oModule2 ) {
+              oMod2 = oModule2;
+              flag = true;
+            });
+          });
+          return flag;
+        }, 'It should resolve the modules', 1000);
+
+        runs( function () {
           Hydra.module.stopAll();
 
           expect( fpDestroyStub1.calledOnce ).toBeTruthy();
           expect( fpDestroyStub2.calledOnce ).toBeTruthy();
           Hydra.module.remove(sModuleId);
         });
+
       });
     });
 
@@ -1292,17 +1336,24 @@
 
     describe('Check that addExtensionBeforeInit works', function () {
 
-      it('should check that Hydra.module.oModifyInit is an empty object', function () {
-        expect( getLengthObject(Hydra.module.oModifyInit) ).toEqual( 0 );
-      });
-
       it('should check that after using addExtensionBeforeInitTest it saves the object', function () {
-        var stub = sinon.stub();
+        var obj = {
+          test: sinon.stub()
+        };
 
-        Hydra.addExtensionBeforeInit({ test: stub});
+        Hydra.module.register('test', function () {
+          return {
+            init: function (){
 
-        expect( getLengthObject(Hydra.module.oModifyInit) ).toEqual( 1 );
-        expect( Hydra.module.oModifyInit.test ).toBe( stub );
+            }
+          };
+        });
+        debugger;
+        Hydra.addExtensionBeforeInit( obj );
+
+        Hydra.module.start('test');
+
+        expect( obj.test.callCount ).toEqual( 1 );
       });
 
     });

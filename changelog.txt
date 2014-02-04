@@ -1,4 +1,6 @@
 ChangeLog:
+3.9.1
+	- Improve minification
 3.9.0
 	- Fix constructor name for Promise and Deferred objects using the correct nomenclature.
 	- Add promises, deferred and when from plugins to the core library to be used heavily in the library.
