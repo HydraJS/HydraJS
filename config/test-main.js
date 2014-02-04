@@ -9,8 +9,8 @@ requirejs.config({
   baseUrl: '/base/src',
 
   paths: {
-    'hydrajs-testing-helper': '../libs/TestingHelper.js',
-    'sinon': '../libs/sinon.js',
+    'hydrajs-testing-helper': '../node_modules/hydrajs-testing-helper/src/hydrajs-testing-helper.js',
+    'sinon': '../node_modules/sinon/pkg/sinon.js',
     'single': '../test/resources/single.js',
     'extended': '../test/resources/extended.js'
   },

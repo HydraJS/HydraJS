@@ -1,6 +1,6 @@
 {
   "name": "hydra.js",
-  "version": "3.9.0",
+  "version": "3.9.1",
   "description": "Framework that gives you the tools to write your application using modules or widgets and make easy to work with them.",
   "homepage": "http://tcorral.github.com/Hydra.js/",
   "author": "Tomas Corral",
@@ -62,8 +62,10 @@
     "grunt-contrib-jshint": "~0.5.4",
     "grunt-contrib-uglify": "~0.2.1",
     "grunt-release-steps": "0.3.7",
+    "grunt-jsdoc": "0.5.1",
     "grunt-karma": "0.6.2",
     "karma": "~0.10.4",
+    "hydrajs-testing-helper": "*",
     "karma-chrome-launcher": "~0.1.0",
     "karma-coffee-preprocessor": "~0.1.0",
     "karma-coverage": "~0.1.0",
