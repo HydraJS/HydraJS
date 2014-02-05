@@ -1334,7 +1334,7 @@
 
     });
 
-    describe('Check that addExtensionBeforeInit works', function () {
+    xdescribe('Check that addExtensionBeforeInit works', function () {
 
       it('should check that after using addExtensionBeforeInitTest it saves the object', function () {
         var obj = {

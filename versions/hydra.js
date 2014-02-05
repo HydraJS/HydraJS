@@ -6,92 +6,87 @@
    * @private
    */
   var oModule,
-    /**
-     * oModifyInit is an object where save the extensions to modify the init function to use by extensions.
-     * @type {Object}
-     * @private
-     */
-      oModifyInit = {},
-    /**
-     * Special Mapping
-     * @type {Object}
-     * @private
-     */
-      oMapping,
-    /**
-     * Mapping of prefixes by object to check to resolve dependencies.
-     * @type {Object}
-     * @private
-     */
-      oMappingMaps = { ___order___: [] },
-    /**
-     * set the global namespace to be the same as root
-     * use Hydra.setNamespace to change it.
-     * @private
-     */
-      namespace = root,
-    /**
-     * Cache Error
-     * @type {Error}
-     */
-      Err = Error,
-    /**
-     * Cache 'undefined' string to test typeof
-     * @type {String}
-     * @private
-     */
-      sNotDefined = 'undefined',
-    /**
-     * Property that will save the registered modules
-     * @type {Object}
-     * @private
-     */
-      oModules = {},
-    /**
-     * Private variables object to be shared between modules
-     * @type {Object}
-     * @private
-     */
-      oVars = {},
-    /**
-     * Object type string
-     * @type {String}
-     * @private
-     */
-      sObjectType = 'object',
-    /**
-     * Contains a reference to false to decrease final size
-     * @type {Boolean}
-     * @private
-     */
-      _false_ = false,
-    /**
-     * Function type string
-     * @type {String}
-     * @private
-     */
-      sFunctionType = 'function',
-    /**
-     * Used to activate the debug mode
-     * @type {Boolean}
-     * @private
-     */
-      bDebug = _false_,
-    /**
-     * Private object to save the channels for communicating event driven
-     * @type {Object}
-     * @private
-     */
-      oChannels = {
-        global: {}
-      },
-    /**
-     * Check if Hydra.js is loaded in Node.js environment
-     * @type {Boolean}
-     * @private
-     */
-      isNodeEnvironment = isTypeOf(root.exports, sObjectType) && isTypeOf(root.module, sObjectType) && isTypeOf(root.module.exports, sObjectType) && isTypeOf(root.require, sFunctionType),
-    Hydra, ErrorHandler, Bus;
+  /**
+   * oModifyInit is an object where save the extensions to modify the init function to use by extensions.
+   * @type {Object}
+   * @private
+   */
+  oModifyInit = {},
+  /**
+   * Special Mapping
+   * @type {Object}
+   * @private
+   */
+  oMapping,
+  /**
+   * Mapping of prefixes by object to check to resolve dependencies.
+   * @type {Object}
+   * @private
+   */
+  oMappingMaps = { ___order___: [] },
+  /**
+   * set the global namespace to be the same as root
+   * use Hydra.setNamespace to change it.
+   * @private
+   */
+  namespace = root,
+  /**
+   * Cache 'undefined' string to test typeof
+   * @type {String}
+   * @private
+   */
+  sNotDefined = 'undefined',
+  /**
+   * Property that will save the registered modules
+   * @type {Object}
+   * @private
+   */
+  oModules = {},
+  /**
+   * Private variables object to be shared between modules
+   * @type {Object}
+   * @private
+   */
+  oVars = {},
+  /**
+   * Object type string
+   * @type {String}
+   * @private
+   */
+  sObjectType = 'object',
+  /**
+   * Contains a reference to false to decrease final size
+   * @type {Boolean}
+   * @private
+   */
+  _false_ = false,
+  /**
+   * Function type string
+   * @type {String}
+   * @private
+   */
+  sFunctionType = 'function',
+  /**
+   * Used to activate the debug mode
+   * @type {Boolean}
+   * @private
+   */
+  bDebug = _false_,
+  /**
+   * Private object to save the channels for communicating event driven
+   * @type {Object}
+   * @private
+   */
+  oChannels = {
+    global: {}
+  },
+  /**
+   * Check if Hydra.js is loaded in Node.js environment
+   * @type {Boolean}
+   * @private
+   */
+  isNodeEnvironment = isTypeOf(root.exports, sObjectType) && isTypeOf(root.module, sObjectType) && isTypeOf(root.module.exports, sObjectType) && isTypeOf(root.require, sFunctionType),
+  Hydra, ErrorHandler, Bus;
 
   /**
    * Helper to iterate over objects using for-in approach
@@ -184,14 +179,14 @@
    */
   function getDependencyThroughAllMaps(sDependency) {
     var oMap,
-      oDependency,
-      nIndexOrder,
-      nLenOrder,
-      aOrderDependency = oMappingMaps.___order___;
+    oDependency,
+    nIndexOrder,
+    nLenOrder,
+    aOrderDependency = oMappingMaps.___order___;
 
     createMapping(oMappingMaps, '__', root, function (sDependency) {
       var oDependency,
-        oPromise = getPromise();
+      oPromise = getPromise();
       oDependency = resolveNamespace(sDependency);
       oPromise.resolve(oDependency);
       return oPromise;
@@ -234,8 +229,8 @@
    */
   function resolveNamespace(sNamespace) {
     var oObj = root,
-      aElements = sNamespace.split('.'),
-      sElement;
+    aElements = sNamespace.split('.'),
+    sElement;
     while (!!( sElement = aElements.shift() )) {
       oObj = oObj[sElement] !== und ? oObj[sElement] : oObj[sElement] = {};
     }
@@ -274,7 +269,7 @@
   function fpThrowErrorModuleNotRegistered(sModuleId, bThrow) {
     var sMessage = 'The module ' + sModuleId + ' is not registered in the system';
     if (bThrow) {
-      throw new Err(sMessage);
+      throw new Error(sMessage);
     }
     return sMessage;
   }
@@ -305,7 +300,7 @@
    */
   function isJqueryObject(oObj) {
     var isJquery = _false_,
-      $ = root.jQuery;
+    $ = root.jQuery;
     if ($) {
       isJquery = isInstanceOf(oObj, $);
     }
@@ -327,7 +322,7 @@
    */
   function generateUniqueKey() {
     var oMath = Math, sFirstToken = +new Date() + '',
-      sSecondToken = oMath.floor(oMath.random() * ( 999999 - 1 + 1 )) + 1;
+    sSecondToken = oMath.floor(oMath.random() * ( 999999 - 1 + 1 )) + 1;
     return sFirstToken + '_' + sSecondToken;
   }
 
@@ -446,7 +441,7 @@
         }
       });
     } else {
-      ErrorHandler.error(new Err(), fpThrowErrorModuleNotRegistered(sModuleId));
+      ErrorHandler.error(new Error(), fpThrowErrorModuleNotRegistered(sModuleId));
     }
   }
 
@@ -473,11 +468,11 @@
     var oCopy;
     // Handle null, undefined, DOM element, Event and jQuery objects, and all the objects that are instances of a constructor different from Object.
     if (null == oObject ||      // Is null
-      !isTypeOf(oObject, sObjectType) ||  // Is not an object (primitive)
-      oObject.constructor.toString().indexOf('Object()') === -1 ||  // Is an instance
-      isEvent(oObject) ||   // Is an event
-      isJqueryObject(oObject) ||  // Is a jQuery object
-      ( oObject.nodeType && oObject.nodeType === 1 )) { // Is a DOM element
+    !isTypeOf(oObject, sObjectType) ||  // Is not an object (primitive)
+    oObject.constructor.toString().indexOf('Object()') === -1 ||  // Is an instance
+    isEvent(oObject) ||   // Is an event
+    isJqueryObject(oObject) ||  // Is a jQuery object
+    ( oObject.nodeType && oObject.nodeType === 1 )) { // Is a DOM element
       return oObject;
     }
 
@@ -503,7 +498,7 @@
       return oCopy;
     }
 
-    throw new Err('Unable to copy object!');
+    throw new Error('Unable to copy object!');
   }
 
   /**
@@ -576,7 +571,7 @@
    */
   function _removeSubscribers(aSubscribers, oSubscriber) {
     var nUnsubscribed = 0,
-      nIndex;
+    nIndex;
     if (!isTypeOf(aSubscribers, sNotDefined)) {
       nIndex = aSubscribers.length - 1;
       for (; nIndex >= 0; nIndex--) {
@@ -667,8 +662,8 @@
      */
     unsubscribeFrom: function (sChannelId, sEventType, oSubscriber) {
       var aChannelEvents = _getChannelEvents(sChannelId, sEventType),
-        oItem,
-        nEvent = aChannelEvents.length - 1;
+      oItem,
+      nEvent = aChannelEvents.length - 1;
 
       for (; nEvent >= 0; nEvent--) {
         oItem = aChannelEvents[nEvent];
@@ -742,8 +737,8 @@
      */
     publish: function (sChannelId, sEvent, oData) {
       var aSubscribers = copyArray(this.subscribers(sChannelId, sEvent)),
-        oSubscriber,
-        nLenSubscribers = aSubscribers.length;
+      oSubscriber,
+      nLenSubscribers = aSubscribers.length;
       if (nLenSubscribers === 0) {
         return _false_;
       }
@@ -776,16 +771,16 @@
    */
   function dependencyInjector(sModuleId, aDependencies) {
     var sDependency,
-      sPrefix,
-      aPromises = [],
-      nDependencies = 0,
-      oMap,
-      oDependency,
-      oPromise,
-      oResult = {
-        mapping: [],
-        dependencies: []
-      };
+    sPrefix,
+    aPromises = [],
+    nDependencies = 0,
+    oMap,
+    oDependency,
+    oPromise,
+    oResult = {
+      mapping: [],
+      dependencies: []
+    };
 
     aDependencies = (aDependencies !== und ? aDependencies : (oModules[sModuleId].dependencies || [])).concat();
 
@@ -1345,6 +1340,24 @@
      */
     fail: function ( fpFailure ) {
       return this.then( nullFunc, fpFailure );
+    },
+
+    /**
+     * Sugar function to create a new Deferred object.
+     * When expects Promise objects to be added to the Deferred object [Promise1, Promise2,...PromiseN]
+     * If one of the arguments is not a Promise When assume that we want to complete the Deferred object
+     */
+    all: function () {
+      return When.apply(When, arguments);
+    },
+    /**
+     * Adds a new callback to be executed when the promise is rejected.
+     * According with the new
+     * @member Promise.prototype
+     * @param {Function} fpFailure
+     */
+    'catch': function ( fpFailure ) {
+      return this.fail( fpFailure );
     }
   };
 
@@ -1364,10 +1377,14 @@
     };
     aSolutions = [];
 
-    for (nArg = 0; nArg < nLenArgs; nArg++) {
-      oArg = aArgs[nArg];
-      oArg.then(getThenCallbacks(nArg, 'resolve', oData, nLenArgs, oPromise, aSolutions),
+    if(aArgs.length === 0){
+      oPromise.resolve();
+    }else{
+      for (nArg = 0; nArg < nLenArgs; nArg++) {
+        oArg = aArgs[nArg];
+        oArg.then(getThenCallbacks(nArg, 'resolve', oData, nLenArgs, oPromise, aSolutions),
         getThenCallbacks(nArg, 'reject', oData, nLenArgs, oPromise, aSolutions));
+      }
     }
 
     return oPromise;
@@ -1394,7 +1411,7 @@
      * @type {String}
      * @static
      */
-    version: '3.9.0',
+    version: '3.9.2',
 
     /**
      * bus is a singleton instance of the bus to subscribe and publish content in channels.
@@ -1620,7 +1637,7 @@
    */
   function FakeModule(sModuleId, fpCreator) {
     if (isTypeOf(fpCreator, sNotDefined)) {
-      throw new Err('Something goes wrong!');
+      throw new Error('Something goes wrong!');
     }
     this.creator = fpCreator;
     this.instances = {};

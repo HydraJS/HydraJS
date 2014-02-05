@@ -1,4 +1,7 @@
 ChangeLog:
+3.9.2
+	- Add new API methods to Promises
+	- Fix bug in When method when no Promises has been added as arguments.
 3.9.1
 	- Improve minification
 3.9.0
