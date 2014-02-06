@@ -629,6 +629,15 @@
   }
 
   /**
+   * Makes changes in oData before passing it to handler.
+   * @param {Object} oData
+   * @returns {*}
+   */
+  function preprocessPublishData( oData ) {
+    return oData;
+  }
+
+  /**
    * Bus is the object that must be used to manage the notifications by channels
    * @constructor
    * @class Bus
@@ -736,10 +745,21 @@
       if (nLenSubscribers === 0) {
         return _false_;
       }
+      oData = preprocessPublishData( oData );
       while (!!(oSubscriber = aSubscribers.shift())) {
         _executeHandler(oSubscriber, oData, sChannelId, sEvent);
       }
       return true;
+    },
+
+    /**
+     * Sets the preprocessor of data before send the data to handlers.
+     * @param {Function} fpCallback
+     */
+    preprocessPublishData: function ( fpCallback ){
+      preprocessPublishData = function ( oData ) {
+        return fpCallback( oData, clone );
+      };
     },
 
     /**

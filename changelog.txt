@@ -1,4 +1,6 @@
 ChangeLog:
+3.9.4
+	- Add pre-process data method before executing handlers in publish.
 3.9.3
 	- No more constructor for Module it should be a singleton.
 3.9.2

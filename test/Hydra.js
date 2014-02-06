@@ -1684,6 +1684,52 @@
         });
       });
 
+      describe('Pre-process publish data', function (){
+
+        beforeEach( function() {
+          Hydra.bus.preprocessPublishData( function( oData ) {
+            return oData;
+          });
+        });
+
+        afterEach( function () {
+          Hydra.bus.preprocessPublishData( function( oData ) {
+            return oData;
+          });
+        });
+
+        describe('Normal usage', function () {
+          it('should check that the changes in the original object are persistent', function () {
+            var oObj = {
+              data: 'original'
+            };
+            Hydra.bus.subscribeTo('channel', 'test', function ( oData ){
+              oData.data = 'changed'
+            }, {});
+            Hydra.bus.publish('channel', 'test', oObj);
+            expect( oObj.data ).toEqual( 'changed' );
+          });
+        });
+
+        describe('Cloning usage', function () {
+          it('should check that the changes in the original object are not persistent', function () {
+            var oObj = {
+              data: 'original'
+            };
+            Hydra.bus.subscribeTo('channel', 'test', function ( oData ){
+              oData.data = 'changed'
+            }, {});
+
+            Hydra.bus.preprocessPublishData( function( oData, clone ) {
+              return clone(oData);
+            });
+
+            Hydra.bus.publish('channel', 'test', oObj);
+            expect( oObj.data ).toEqual( 'original' );
+          });
+        });
+      });
+
       describe('Add mapping', function() {
 
         describe('Sync mapping', function () {
