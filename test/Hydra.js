@@ -572,7 +572,6 @@
 
         runs( function () {
           Hydra.module.stopAll();
-
           expect( fpDestroyStub1.calledOnce ).toBeTruthy();
           expect( fpDestroyStub2.calledOnce ).toBeTruthy();
           Hydra.module.remove(sModuleId);
@@ -1334,7 +1333,7 @@
 
     });
 
-    xdescribe('Check that addExtensionBeforeInit works', function () {
+    describe('Check that addExtensionBeforeInit works', function () {
 
       it('should check that after using addExtensionBeforeInitTest it saves the object', function () {
         var obj = {
@@ -1348,7 +1347,6 @@
             }
           };
         });
-        debugger;
         Hydra.addExtensionBeforeInit( obj );
 
         Hydra.module.start('test');

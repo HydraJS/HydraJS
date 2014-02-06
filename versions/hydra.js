@@ -1,17 +1,11 @@
 (function (root, und) {
   'use strict';
   /**
-   * Module instance
-   * @type {Object}
-   * @private
-   */
-  var oModule,
-  /**
    * oModifyInit is an object where save the extensions to modify the init function to use by extensions.
    * @type {Object}
    * @private
    */
-  oModifyInit = {},
+  var oModifyInit = {},
   /**
    * Special Mapping
    * @type {Object}
@@ -86,7 +80,7 @@
    * @private
    */
   isNodeEnvironment = isTypeOf(root.exports, sObjectType) && isTypeOf(root.module, sObjectType) && isTypeOf(root.module.exports, sObjectType) && isTypeOf(root.require, sFunctionType),
-  Hydra, ErrorHandler, Bus;
+  Hydra, ErrorHandler, Bus, Module;
 
   /**
    * Helper to iterate over objects using for-in approach
@@ -962,14 +956,13 @@
 
   /**
    * Loops over instances of modules to stop them.
-   * @param {Object} oInstance
-   * @param {Module} oInstances
+   * @param {Module} oModule
    * @param {String} sModuleId
    * @private
    */
-  function _stopOneByOne(oInstance, oInstances, sModuleId) {
-    iterateObject(oInstances, function (oItem, sInstanceId) {
-      oInstance.stop(sModuleId, sInstanceId);
+  function _stopOneByOne(oModule, sModuleId) {
+    iterateObject(oModule.instances, function (oItem, sInstanceId) {
+      Module.stop(sModuleId, sInstanceId);
     });
   }
 
@@ -1013,17 +1006,9 @@
    * @name Module
    * @private
    */
-  function Module() {
-    this.__super__ = {};
-    this.instances = {};
-  }
-
-  /**
-   * Module Prototype
-   * @member Module
-   * @type {Object}
-   */
-  Module.prototype = {
+  Module = {
+    __super__: {},
+    instances: {},
     /**
      * type is a property to be able to know the class type.
      * @member Module.prototype
@@ -1050,7 +1035,7 @@
     register: function (sModuleId, aDependencies, fpCreator) {
       if (isFunction(aDependencies)) {
         fpCreator = aDependencies;
-        aDependencies = [ Bus, oModule, ErrorHandler, Hydra ];
+        aDependencies = [ Bus, Module, ErrorHandler, Hydra ];
       }
       oModules[sModuleId] = new FakeModule(sModuleId, fpCreator);
 
@@ -1148,11 +1133,11 @@
         if (isTypeOf(sModuleDecorated, sFunctionType)) {
           fpDecorator = sModuleDecorated;
           sModuleDecorated = sBaseModule;
-          aDependencies = [Bus, oModule, Hydra.errorHandler(), Hydra];
+          aDependencies = [Bus, Module, Hydra.errorHandler(), Hydra];
         }
         if (isTypeOf(aDependencies, sFunctionType)) {
           fpDecorator = aDependencies;
-          aDependencies = [Bus, oModule, Hydra.errorHandler(), Hydra];
+          aDependencies = [Bus, Module, Hydra.errorHandler(), Hydra];
         }
         aDependencies.push(oInstance);
         oDecorated = fpDecorator.apply(fpDecorator, aDependencies);
@@ -1209,7 +1194,7 @@
     startAll: function () {
       iterateObject(oModules, function (_oModule, sModuleId) {
         if (!isTypeOf(_oModule, sNotDefined)) {
-          oModule.start(sModuleId, generateUniqueKey());
+          Module.start(sModuleId, generateUniqueKey());
         }
       });
     },
@@ -1244,7 +1229,7 @@
     stopAll: function () {
       iterateObject(oModules, function (_oModule, sModuleId) {
         if (!isTypeOf(_oModule, sNotDefined)) {
-          _stopOneByOne(oModule, _oModule.instances, sModuleId);
+          _stopOneByOne(_oModule, sModuleId);
         }
       });
     },
@@ -1262,7 +1247,7 @@
       }
       if (!isTypeOf(oModule, sNotDefined)) {
         try {
-          return oModule;
+          return Module;
         }
         finally {
           _delete(sModuleId);
@@ -1277,7 +1262,7 @@
      * @member Module.prototype
      */
     reset: function () {
-      oModule.stopAll();
+      Module.stopAll();
       oModules = {};
       createMapping(oMappingMaps, 'hm_', oModules);
     }
@@ -1391,13 +1376,6 @@
   }
 
   /**
-   * Module instance.
-   * @type {Module}
-   * @private
-   */
-  oModule = new Module();
-
-  /**
    * Hydra is the api that will be available to use by developers
    * @constructor
    * @class Hydra
@@ -1471,7 +1449,7 @@
      * @type {Module}
      * @static
      */
-    module: oModule,
+    module: Module,
 
     /**
      * Change the debug mode to on/off
@@ -1533,7 +1511,7 @@
     /**
      * Merges an object to oModifyInit that will be executed before executing the init.
      * {
-     *    'property_in_module_to_check': function(oModule){} // Callback to execute if the property exist
+     *    'property_in_module_to_check': function(Module){} // Callback to execute if the property exist
      * }
      * @type {Function}
      * @param {Object} oVar
@@ -1612,7 +1590,7 @@
    */
   oMapping = {
     'bus': Bus,
-    'module': oModule,
+    'module': Module,
     'log': ErrorHandler,
     'api': Hydra,
     'global': root,
@@ -1653,7 +1631,7 @@
      * @return {FakeModule}
      */
     start: function (oData) {
-      oModule.start(this.sModuleId, oData);
+      Module.start(this.sModuleId, oData);
       return this;
     },
 
@@ -1665,7 +1643,7 @@
      * @return {FakeModule}
      */
     extend: function (oSecondParameter, oThirdParameter) {
-      oModule.extend(this.sModuleId, oSecondParameter, oThirdParameter);
+      Module.extend(this.sModuleId, oSecondParameter, oThirdParameter);
       return this;
     },
 
@@ -1675,7 +1653,7 @@
      * @return {FakeModule}
      */
     stop: function () {
-      oModule.stop(this.sModuleId);
+      Module.stop(this.sModuleId);
       return this;
     }
   };

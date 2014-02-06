@@ -1,4 +1,6 @@
 ChangeLog:
+3.9.3
+	- No more constructor for Module it should be a singleton.
 3.9.2
 	- Add new API methods to Promises
 	- Fix bug in When method when no Promises has been added as arguments.
