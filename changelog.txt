@@ -1,4 +1,6 @@
 ChangeLog:
+3.9.5
+	- Add full compatibility with native Promises and if not make use of our polyfill.
 3.9.4
 	- Add pre-process data method before executing handlers in publish.
 3.9.3
@@ -61,7 +63,7 @@ ChangeLog:
 3.3.0
     - Adding decorate method to decorate modules instead of using extend to improve reusability of code.
 3.2.2
-	- Adding retrocompatibility to previous versions.
+	- Adding retro-compatibility to previous versions.
 3.2.1
 	- Added Bower support
 	- Added error method to ErrorHandler
@@ -100,7 +102,7 @@ ChangeLog:
                 }
             }
         }
-    - The subscribing and unsubscribing of events is automatically done when init and destroying the module.
+    - The subscribe and unsubscribe of events is automatically done when init and destroying the module.
     - Added two new methods:
         * subscribeTo
             Method to subscribe a callback to a channel and event.
@@ -109,7 +111,7 @@ ChangeLog:
 3.0.2
 	- Add a private method to handle the execution of callbacks to avoid blocking the user interface.
 3.0.1
-	- Reduce ciclomatic complexity in all the methods that need it.
+	- Reduce cyclomatic complexity in all the methods that need it.
 3.0.0
 	- A new system of register events to any object with a oEvents property where the keys must be the events to be triggered and the values the callbacks to be executed. The system adds automatically the events using the oEvents object.
 	- Action has been moved to one extension in https://github.com/tcorral/Hydra_Extensions/tree/master/Sandbox if you need backward compatibility.
@@ -185,6 +187,6 @@ ChangeLog:
 1.2.0
 	- Added Promise and Deferred objects
 1.1.1
-	- Added clasical inheritance to objects.
+	- Added classical inheritance to objects.
 	- Added __action__ to access Action object from modules
 	- Added __super__ to access parent object from methods using __call__ method.

@@ -2,6 +2,7 @@ if (typeof require !== 'undefined') {
   var Hydra = require('../../src/Hydra');
 }
 Hydra.module.register("single-module", function () {
+  'use strict';
   return {
     isFirstExecution: null,
     init: function () {

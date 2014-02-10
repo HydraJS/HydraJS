@@ -79,7 +79,10 @@
    * @type {Boolean}
    * @private
    */
-  isNodeEnvironment = isTypeOf(root.exports, sObjectType) && isTypeOf(root.module, sObjectType) && isTypeOf(root.module.exports, sObjectType) && isTypeOf(root.require, sFunctionType),
+  isNodeEnvironment = isTypeOf(root.exports, sObjectType) &&
+                      isTypeOf(root.module, sObjectType) &&
+                      isTypeOf(root.module.exports, sObjectType) &&
+                      isTypeOf(root.require, sFunctionType),
   Hydra, ErrorHandler, Bus, Module;
 
   /**
@@ -269,7 +272,8 @@
   }
 
   /**
-   * Use Event detection and if it fails it degrades to use duck typing detection to test if the supplied object is an Event
+   * Use Event detection and if it fails it degrades to use duck typing detection to
+   * test if the supplied object is an Event
    * @param {Object} oObj
    * @return {Boolean}
    * @private
@@ -460,8 +464,11 @@
    */
   function clone(oObject) {
     var oCopy;
-    // Handle null, undefined, DOM element, Event and jQuery objects, and all the objects that are instances of a constructor different from Object.
-    if (null == oObject ||      // Is null
+    /*
+     Handle null, undefined, DOM element, Event and jQuery objects,
+     and all the objects that are instances of a constructor different from Object.
+    */
+    if (null == oObject ||      // Is null or undefined
     !isTypeOf(oObject, sObjectType) ||  // Is not an object (primitive)
     oObject.constructor.toString().indexOf('Object()') === -1 ||  // Is an instance
     isEvent(oObject) ||   // Is an event
@@ -808,7 +815,7 @@
         } else {
           sPrefix = '';
         }
-        oMap = oMappingMaps[ sPrefix ] || oMappingMaps[ 'gl_' ];
+        oMap = oMappingMaps[ sPrefix ] || oMappingMaps.gl_;
         sDependency = sDependency.replace(sPrefix, '');
         oDependency = oMap.__map__[sDependency];
         if (!oDependency) {
@@ -1113,8 +1120,8 @@
 
     /**
      * start is the method that initialize the module/s
-     * If you use array instead of arrays you can start more than one module even adding the instance, the data and if it must be executed
-     * as single module start.
+     * If you use array instead of arrays you can start more than one module even adding the instance,
+     * the data and if it must be executed as single module start.
      * @member Module.prototype
      * @param {String|Array} oModuleId
      * @param {String|Array} [oIdInstance]
@@ -1199,10 +1206,12 @@
     isModuleStarted: function (sModuleId, sInstanceId) {
       var bStarted = _false_;
       if (isTypeOf(sInstanceId, sNotDefined)) {
-        bStarted = ( !isTypeOf(oModules[sModuleId], sNotDefined) && getObjectLength(oModules[sModuleId].instances) > 0 );
+        bStarted = ( !isTypeOf(oModules[sModuleId], sNotDefined) &&
+                      getObjectLength(oModules[sModuleId].instances) > 0 );
       }
       else {
-        bStarted = ( !isTypeOf(oModules[sModuleId], sNotDefined) && !isTypeOf(oModules[sModuleId].instances[sInstanceId], sNotDefined) );
+        bStarted = ( !isTypeOf(oModules[sModuleId], sNotDefined) &&
+                      !isTypeOf(oModules[sModuleId].instances[sInstanceId], sNotDefined) );
       }
       return bStarted;
     },
@@ -1289,22 +1298,26 @@
   };
 
   /**
-   * Promise is a class that must/can be used to defer execution of one or some callbacks when one condition (normally some asynchronous callbacks that are depending one of other)
+   * Promise is a class that must/can be used to defer execution of one or some callbacks when one
+   * condition (normally some asynchronous callbacks that are depending one of other)
    * @class Promise
+   * @param {Function} fpCallback
    * @constructor
    * @name Promise
    */
-  function Promise() {
+  function Promise( fpCallback ) {
     // Pending callbacks
     this.aPending = [];
     this.bCompleted = false;
     this.sType = '';
     this.oResult = null;
+    fpCallback = fpCallback || nullFunc;  // Made to be compatible with previous versions not ES6 compliant.
 
     // Must be called when something finished successfully
     this.resolve = getPromiseCallbacks(this, 'resolve');
     // Must be called when something fails
     this.reject = getPromiseCallbacks(this, 'reject');
+    fpCallback( this.resolve, this.reject );
   }
 
   Promise.prototype = {
@@ -1445,7 +1458,7 @@
      * @type {Promise}
      * @static
      */
-    Promise: Promise,
+    Promise: root.Promise || Promise,
 
     /**
      * Returns the constructor of Deferred object
@@ -1453,7 +1466,7 @@
      * @type {Promise}
      * @static
      */
-    Deferred: Promise,
+    Deferred: root.Promise || Promise,
 
     /**
      * Sugar method to generate Deferred objects in a simple way
