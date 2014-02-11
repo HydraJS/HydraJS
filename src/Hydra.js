@@ -6,84 +6,84 @@
    * @private
    */
   var oModifyInit = {},
-  /**
-   * Special Mapping
-   * @type {Object}
-   * @private
-   */
-  oMapping,
-  /**
-   * Mapping of prefixes by object to check to resolve dependencies.
-   * @type {Object}
-   * @private
-   */
-  oMappingMaps = { ___order___: [] },
-  /**
-   * set the global namespace to be the same as root
-   * use Hydra.setNamespace to change it.
-   * @private
-   */
-  namespace = root,
-  /**
-   * Cache 'undefined' string to test typeof
-   * @type {String}
-   * @private
-   */
-  sNotDefined = 'undefined',
-  /**
-   * Property that will save the registered modules
-   * @type {Object}
-   * @private
-   */
-  oModules = {},
-  /**
-   * Private variables object to be shared between modules
-   * @type {Object}
-   * @private
-   */
-  oVars = {},
-  /**
-   * Object type string
-   * @type {String}
-   * @private
-   */
-  sObjectType = 'object',
-  /**
-   * Contains a reference to false to decrease final size
-   * @type {Boolean}
-   * @private
-   */
-  _false_ = false,
-  /**
-   * Function type string
-   * @type {String}
-   * @private
-   */
-  sFunctionType = 'function',
-  /**
-   * Used to activate the debug mode
-   * @type {Boolean}
-   * @private
-   */
-  bDebug = _false_,
-  /**
-   * Private object to save the channels for communicating event driven
-   * @type {Object}
-   * @private
-   */
-  oChannels = {
-    global: {}
-  },
-  /**
-   * Check if Hydra.js is loaded in Node.js environment
-   * @type {Boolean}
-   * @private
-   */
-  isNodeEnvironment = isTypeOf(root.exports, sObjectType) &&
-                      isTypeOf(root.module, sObjectType) &&
-                      isTypeOf(root.module.exports, sObjectType) &&
-                      isTypeOf(root.require, sFunctionType),
-  Hydra, ErrorHandler, Bus, Module;
+    /**
+     * Special Mapping
+     * @type {Object}
+     * @private
+     */
+      oMapping,
+    /**
+     * Mapping of prefixes by object to check to resolve dependencies.
+     * @type {Object}
+     * @private
+     */
+      oMappingMaps = { ___order___: [] },
+    /**
+     * set the global namespace to be the same as root
+     * use Hydra.setNamespace to change it.
+     * @private
+     */
+      namespace = root,
+    /**
+     * Cache 'undefined' string to test typeof
+     * @type {String}
+     * @private
+     */
+      sNotDefined = 'undefined',
+    /**
+     * Property that will save the registered modules
+     * @type {Object}
+     * @private
+     */
+      oModules = {},
+    /**
+     * Private variables object to be shared between modules
+     * @type {Object}
+     * @private
+     */
+      oVars = {},
+    /**
+     * Object type string
+     * @type {String}
+     * @private
+     */
+      sObjectType = 'object',
+    /**
+     * Contains a reference to false to decrease final size
+     * @type {Boolean}
+     * @private
+     */
+      _false_ = false,
+    /**
+     * Function type string
+     * @type {String}
+     * @private
+     */
+      sFunctionType = 'function',
+    /**
+     * Used to activate the debug mode
+     * @type {Boolean}
+     * @private
+     */
+      bDebug = _false_,
+    /**
+     * Private object to save the channels for communicating event driven
+     * @type {Object}
+     * @private
+     */
+      oChannels = {
+      global: {}
+    },
+    /**
+     * Check if Hydra.js is loaded in Node.js environment
+     * @type {Boolean}
+     * @private
+     */
+      isNodeEnvironment = isTypeOf(root.exports, sObjectType) &&
+      isTypeOf(root.module, sObjectType) &&
+      isTypeOf(root.module.exports, sObjectType) &&
+      isTypeOf(root.require, sFunctionType),
+    Hydra, ErrorHandler, Bus, Module;
 
   /**
    * Helper to iterate over objects using for-in approach
@@ -176,14 +176,14 @@
    */
   function getDependencyThroughAllMaps(sDependency) {
     var oMap,
-    oDependency,
-    nIndexOrder,
-    nLenOrder,
-    aOrderDependency = oMappingMaps.___order___;
+      oDependency,
+      nIndexOrder,
+      nLenOrder,
+      aOrderDependency = oMappingMaps.___order___;
 
     createMapping(oMappingMaps, '__', root, function (sDependency) {
       var oDependency,
-      oPromise = getPromise();
+        oPromise = getPromise();
       oDependency = resolveNamespace(sDependency);
       oPromise.resolve(oDependency);
       return oPromise;
@@ -226,8 +226,8 @@
    */
   function resolveNamespace(sNamespace) {
     var oObj = root,
-    aElements = sNamespace.split('.'),
-    sElement;
+      aElements = sNamespace.split('.'),
+      sElement;
     while (!!( sElement = aElements.shift() )) {
       oObj = oObj[sElement] !== und ? oObj[sElement] : oObj[sElement] = {};
     }
@@ -298,7 +298,7 @@
    */
   function isJqueryObject(oObj) {
     var isJquery = _false_,
-    $ = root.jQuery;
+      $ = root.jQuery;
     if ($) {
       isJquery = isInstanceOf(oObj, $);
     }
@@ -320,7 +320,7 @@
    */
   function generateUniqueKey() {
     var oMath = Math, sFirstToken = +new Date() + '',
-    sSecondToken = oMath.floor(oMath.random() * ( 999999 - 1 + 1 )) + 1;
+      sSecondToken = oMath.floor(oMath.random() * ( 999999 - 1 + 1 )) + 1;
     return sFirstToken + '_' + sSecondToken;
   }
 
@@ -467,13 +467,13 @@
     /*
      Handle null, undefined, DOM element, Event and jQuery objects,
      and all the objects that are instances of a constructor different from Object.
-    */
+     */
     if (null == oObject ||      // Is null or undefined
-    !isTypeOf(oObject, sObjectType) ||  // Is not an object (primitive)
-    oObject.constructor.toString().indexOf('Object()') === -1 ||  // Is an instance
-    isEvent(oObject) ||   // Is an event
-    isJqueryObject(oObject) ||  // Is a jQuery object
-    ( oObject.nodeType && oObject.nodeType === 1 )) { // Is a DOM element
+      !isTypeOf(oObject, sObjectType) ||  // Is not an object (primitive)
+      oObject.constructor.toString().indexOf('Object()') === -1 ||  // Is an instance
+      isEvent(oObject) ||   // Is an event
+      isJqueryObject(oObject) ||  // Is a jQuery object
+      ( oObject.nodeType && oObject.nodeType === 1 )) { // Is a DOM element
       return oObject;
     }
 
@@ -572,7 +572,7 @@
    */
   function _removeSubscribers(aSubscribers, oSubscriber) {
     var nUnsubscribed = 0,
-    nIndex;
+      nIndex;
     if (!isTypeOf(aSubscribers, sNotDefined)) {
       nIndex = aSubscribers.length - 1;
       for (; nIndex >= 0; nIndex--) {
@@ -640,7 +640,7 @@
    * @param {Object} oData
    * @returns {*}
    */
-  function preprocessPublishData( oData ) {
+  function preprocessPublishData(oData) {
     return oData;
   }
 
@@ -672,8 +672,8 @@
      */
     unsubscribeFrom: function (sChannelId, sEventType, oSubscriber) {
       var aChannelEvents = _getChannelEvents(sChannelId, sEventType),
-      oItem,
-      nEvent = aChannelEvents.length - 1;
+        oItem,
+        nEvent = aChannelEvents.length - 1;
 
       for (; nEvent >= 0; nEvent--) {
         oItem = aChannelEvents[nEvent];
@@ -747,12 +747,12 @@
      */
     publish: function (sChannelId, sEvent, oData) {
       var aSubscribers = copyArray(this.subscribers(sChannelId, sEvent)),
-      oSubscriber,
-      nLenSubscribers = aSubscribers.length;
+        oSubscriber,
+        nLenSubscribers = aSubscribers.length;
       if (nLenSubscribers === 0) {
         return _false_;
       }
-      oData = preprocessPublishData( oData );
+      oData = preprocessPublishData(oData);
       while (!!(oSubscriber = aSubscribers.shift())) {
         _executeHandler(oSubscriber, oData, sChannelId, sEvent);
       }
@@ -763,9 +763,9 @@
      * Sets the preprocessor of data before send the data to handlers.
      * @param {Function} fpCallback
      */
-    preprocessPublishData: function ( fpCallback ){
-      preprocessPublishData = function ( oData ) {
-        return fpCallback( oData, clone );
+    preprocessPublishData: function (fpCallback) {
+      preprocessPublishData = function (oData) {
+        return fpCallback(oData, clone);
       };
     },
 
@@ -792,16 +792,16 @@
    */
   function dependencyInjector(sModuleId, aDependencies) {
     var sDependency,
-    sPrefix,
-    aPromises = [],
-    nDependencies = 0,
-    oMap,
-    oDependency,
-    oPromise,
-    oResult = {
-      mapping: [],
-      dependencies: []
-    };
+      sPrefix,
+      aPromises = [],
+      nDependencies = 0,
+      oMap,
+      oDependency,
+      oPromise,
+      oResult = {
+        mapping: [],
+        dependencies: []
+      };
 
     aDependencies = (aDependencies !== und ? aDependencies : (oModules[sModuleId].dependencies || [])).concat();
 
@@ -853,6 +853,7 @@
     function success(mapping) {
       var oModule, fpInitProxy;
       oModule = oModules[sModuleId].creator.apply(oModules[sModuleId], [].slice.call(arguments, 1));
+      oModule.__children__ = [];
       oModule.dependencies = aDependencies;
       oModule.resolvedDependencies = mapping;
       oModule.__module_id__ = sModuleId;
@@ -862,7 +863,9 @@
       oModule.events = oModule.events || {};
       oModule.init = function () {
         var aArgs = copyArray(arguments).concat(oVars);
-        Bus.subscribe(oModule);
+        if (oModule.__children__.length === 0) {  // Only subscribe last element of inheritance.
+          Bus.subscribe(oModule);
+        }
         return fpInitProxy.apply(this, aArgs);
       };
       oModule.handleAction = function (oNotifier) {
@@ -1157,6 +1160,9 @@
       }
 
       createInstance(sBaseModule, undefined, function (oInstance) {
+        if (isTypeOf(sBaseModule, 'string') && isTypeOf(sModuleDecorated, 'string')) {
+          oInstance.__children__.push(oDecorated);
+        }
         if (isTypeOf(sModuleDecorated, sFunctionType)) {
           fpDecorator = sModuleDecorated;
           sModuleDecorated = sBaseModule;
@@ -1168,13 +1174,13 @@
         }
         aDependencies.push(oInstance);
         oDecorated = fpDecorator.apply(fpDecorator, aDependencies);
-
         oModules[sModuleDecorated] = new FakeModule(sModuleDecorated, function () {
           // If we extend the module with the different name, we
           // create proxy class for the original methods.
           var oMerge = {};
           oMerge = simpleMerge(oMerge, oInstance);
           oMerge = simpleMerge(oMerge, oDecorated);
+          oMerge.__children__ = [];
           oMerge = simpleMerge(oMerge, {
             __super__: {
               __call__: function (sKey, aArgs) {
@@ -1207,11 +1213,10 @@
       var bStarted = _false_;
       if (isTypeOf(sInstanceId, sNotDefined)) {
         bStarted = ( !isTypeOf(oModules[sModuleId], sNotDefined) &&
-                      getObjectLength(oModules[sModuleId].instances) > 0 );
+          getObjectLength(oModules[sModuleId].instances) > 0 );
       }
       else {
-        bStarted = ( !isTypeOf(oModules[sModuleId], sNotDefined) &&
-                      !isTypeOf(oModules[sModuleId].instances[sInstanceId], sNotDefined) );
+        bStarted = ( !isTypeOf(oModules[sModuleId], sNotDefined) && !isTypeOf(oModules[sModuleId].instances[sInstanceId], sNotDefined) );
       }
       return bStarted;
     },
@@ -1305,7 +1310,7 @@
    * @constructor
    * @name Promise
    */
-  function Promise( fpCallback ) {
+  function Promise(fpCallback) {
     // Pending callbacks
     this.aPending = [];
     this.bCompleted = false;
@@ -1317,7 +1322,7 @@
     this.resolve = getPromiseCallbacks(this, 'resolve');
     // Must be called when something fails
     this.reject = getPromiseCallbacks(this, 'reject');
-    fpCallback( this.resolve, this.reject );
+    fpCallback(this.resolve, this.reject);
   }
 
   Promise.prototype = {
@@ -1347,8 +1352,8 @@
      * @member Promise.prototype
      * @param {Function} fpSuccess
      */
-    done: function ( fpSuccess ) {
-      return this.then( fpSuccess, nullFunc );
+    done: function (fpSuccess) {
+      return this.then(fpSuccess, nullFunc);
     },
 
     /**
@@ -1356,8 +1361,8 @@
      * @member Promise.prototype
      * @param {Function} fpFailure
      */
-    fail: function ( fpFailure ) {
-      return this.then( nullFunc, fpFailure );
+    fail: function (fpFailure) {
+      return this.then(nullFunc, fpFailure);
     },
 
     /**
@@ -1374,8 +1379,8 @@
      * @member Promise.prototype
      * @param {Function} fpFailure
      */
-    'catch': function ( fpFailure ) {
-      return this.fail( fpFailure );
+    'catch': function (fpFailure) {
+      return this.fail(fpFailure);
     }
   };
 
@@ -1395,13 +1400,13 @@
     };
     aSolutions = [];
 
-    if(aArgs.length === 0){
+    if (aArgs.length === 0) {
       oPromise.resolve();
-    }else{
+    } else {
       for (nArg = 0; nArg < nLenArgs; nArg++) {
         oArg = aArgs[nArg];
         oArg.then(getThenCallbacks(nArg, 'resolve', oData, nLenArgs, oPromise, aSolutions),
-        getThenCallbacks(nArg, 'reject', oData, nLenArgs, oPromise, aSolutions));
+          getThenCallbacks(nArg, 'reject', oData, nLenArgs, oPromise, aSolutions));
       }
     }
 

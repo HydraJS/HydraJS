@@ -1,4 +1,6 @@
 ChangeLog:
+3.9.6
+    - Fix bug when subscribing events in extended modules that inherit events from their parents. The issue was that the events were subscribed two times one for the child and other for the parent.
 3.9.5
 	- Add full compatibility with native Promises and if not make use of our polyfill.
 3.9.4
