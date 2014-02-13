@@ -1065,7 +1065,7 @@
     register: function (sModuleId, aDependencies, fpCreator) {
       if (isFunction(aDependencies)) {
         fpCreator = aDependencies;
-        aDependencies = [ Bus, Module, ErrorHandler, Hydra ];
+        aDependencies = [ '$$_bus', '$$_module', '$$_log', 'gl_Hydra' ];
       }
       oModules[sModuleId] = new FakeModule(sModuleId, fpCreator);
 
@@ -1166,11 +1166,11 @@
         if (isTypeOf(sModuleDecorated, sFunctionType)) {
           fpDecorator = sModuleDecorated;
           sModuleDecorated = sBaseModule;
-          aDependencies = [Bus, Module, Hydra.errorHandler(), Hydra];
+          aDependencies = [ '$$_bus', '$$_module', '$$_log', 'gl_Hydra' ];
         }
         if (isTypeOf(aDependencies, sFunctionType)) {
           fpDecorator = aDependencies;
-          aDependencies = [Bus, Module, Hydra.errorHandler(), Hydra];
+          aDependencies = [ '$$_bus', '$$_module', '$$_log', 'gl_Hydra' ];
         }
         aDependencies.push(oInstance);
         oDecorated = fpDecorator.apply(fpDecorator, aDependencies);
