@@ -10,6 +10,7 @@ module.exports = function (config) {
       'node_modules/sinon/pkg/sinon.js',
       'src/Hydra.js',
       'node_modules/hydrajs-testing-helper/src/hydrajs-testing-helper.js',
+      'node_modules/sinonjs-hydrajs-testing-helper/src/sinonjs-hydrajs-testing-helper.js',
       'test/Hydra.js'
     ],
 

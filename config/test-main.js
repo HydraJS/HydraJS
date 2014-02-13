@@ -10,6 +10,7 @@ requirejs.config({
 
   paths: {
     'hydrajs-testing-helper': '../node_modules/hydrajs-testing-helper/src/hydrajs-testing-helper.js',
+    'sinonjs-hydrajs-testing-helper': '../node_modules/sinonjs-hydrajs-testing-helper/src/sinonjs-hydrajs-testing-helper.js',
     'sinon': '../node_modules/sinon/pkg/sinon.js',
     'single': '../test/resources/single.js',
     'extended': '../test/resources/extended.js'

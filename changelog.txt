@@ -1,4 +1,6 @@
 ChangeLog:
+3.9.7
+	- When no dependency is injected manually replace the Hydra objects, that are added automatically, with the correct strings that will be replaced by objects, this is good to use the same system to resolve dependencies in all the cases.
 3.9.6
     - Fix bug when subscribing events in extended modules that inherit events from their parents. The issue was that the events were subscribed two times one for the child and other for the parent.
 3.9.5
