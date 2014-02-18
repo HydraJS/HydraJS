@@ -44,8 +44,8 @@
     }
   ],
   "bugs": {
-    "mail": "amischol@gmail.com",
-    "web": "https://github.com/HydraJS/HydraJS/issues"
+    "email": "amischol@gmail.com",
+    "url": "https://github.com/HydraJS/HydraJS/issues"
   },
   "repository": {
     "type": "git",
