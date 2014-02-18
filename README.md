@@ -43,31 +43,27 @@ Hydra.js uses a decoupled architecture that:
 
 ### Install:
 
-Install with [Bower](http://bower.io)
+You can install with a package manager or by manually downloading the repository.
 
-bower install hydrajs
-
-Install with [Component](http://component.io)
-
-component install hydrajs
-
-Install with [NPM](http://npmjs.org)
-
-npm install hydra.js
+- Install with [Bower](http://bower.io): `bower install hydrajs`
+- Install with [Component](http://component.io): `component install hydrajs`
+- Install with [NPM](http://npmjs.org): `npm install hydra.js`
 
 ### Use in browser
 
 Insert in your html code:
 
+```html
 <script type="text/javascript" src="/path/to/your/js/libs/Hydra.js"></script>
+```
 
 ### Common usage
 #### Setting variables
 
 ```js
 Hydra.module.setVars({
-gaq: _gaq,
-list: document.getElementById( "list" )
+  gaq: _gaq,
+  list: document.getElementById( "list" )
 });
 ```
 
@@ -85,21 +81,17 @@ Returns the object with the private variables set using setVars (See 'Setting va
 #### Module creator function
 The module creator function gets four arguments:
 
-* **Bus**
-* Get access to Hydra.bus, the action manager to publish or subscribe to events
-* **Module**
-* Get access to Hydra.module, the module manager to register, extend, decorate, start and stop modules.
-* **ErrorHandler**
-* Get access to the Hydra.errorHandler, it's recommended to use it instead of using console.log because of the possible improvements see [Hydra.js extensions](https://github.com/tcorral/Hydra_Extensions/) or [Hermes.js](https://github.com/tcorral/Hermes.js/)
-* **Api**
-* Get access to the rest of the Hydra api. You can use it to access to the current extensions, i.e. jQuery, or to your own extensions.
+* **Bus:** Get access to Hydra.bus, the action manager to publish or subscribe to events
+* **Module:** Get access to Hydra.module, the module manager to register, extend, decorate, start and stop modules.
+* **ErrorHandler:** Get access to the Hydra.errorHandler, it's recommended to use it instead of using console.log because of the possible improvements see [Hydra.js extensions](https://github.com/tcorral/Hydra_Extensions/) or [Hermes.js](https://github.com/tcorral/Hermes.js/)
+* **Api:** Get access to the rest of the Hydra api. You can use it to access to the current extensions, i.e. jQuery, or to your own extensions.
 
 ```js
 function( Bus, Module, ErrorHandler, Api )
 {
-return {
-init: function ( oData ) {}
-};
+  return {
+    init: function ( oData ) {}
+  };
 }
 ```
 
@@ -107,9 +99,9 @@ init: function ( oData ) {}
 ```js
 Hydra.module.register( 'moduleId', function( Bus, Module, ErrorHandler, Api )
 {
-return {
-init: function ( oData ) {}
-};
+  return {
+    init: function ( oData ) {}
+  };
 });
 ```
 
@@ -117,9 +109,9 @@ init: function ( oData ) {}
 ```js
 Hydra.module.register( 'moduleId', ['$api', '$bus'], function ( Api, Bus )
 {
-return {
-init: function ( oData ) {}
-};
+  return {
+    init: function ( oData ) {}
+  };
 });
 ```
 
@@ -141,9 +133,9 @@ To extend a module you will need to register the base module before extends it.
 ```js
 Hydra.module.extend( 'moduleId', function( Bus, Module, ErrorHandler, Api )
 {
-return {
-init: function ( oData ) {}
-};
+  return {
+    init: function ( oData ) {}
+  };
 });
 ```
 
@@ -153,9 +145,9 @@ To extend a module you will need to register the base module before extends it.
 ```js
 Hydra.module.extend( 'moduleId', 'newModuleId', function( Bus, Module, ErrorHandler, Api )
 {
-return {
-init: function ( oData ) {}
-};
+  return {
+    init: function ( oData ) {}
+  };
 });
 ```
 
@@ -168,12 +160,12 @@ Register base module:
 ```js
 Hydra.module.register( 'moduleId', function( Bus, Module, ErrorHandler, Api )
 {
-return {
-init: function ( oData ) {},
-changeTitle: function( sTitle ){
-document.title = sTitle;
-}
-};
+  return {
+    init: function ( oData ) {},
+    changeTitle: function( sTitle ){
+      document.title = sTitle;
+    }
+  };
 });
 ```
 
@@ -182,14 +174,14 @@ Create the new module using "extend":
 ```js
 Hydra.module.extend( 'moduleId', 'newModuleId', function( Bus, Module, ErrorHandler, Api )
 {
-return {
-init: function ( oData ) {},
-changeTitle: function( sTitle ){
-sTitle += " " + new Date().getTime();
-// This is the way of access parent methods.
-this.__super__.call( "changeTitle", [sTitle] );
-}
-};
+  return {
+    init: function ( oData ) {},
+    changeTitle: function( sTitle ){
+      sTitle += " " + new Date().getTime();
+      // This is the way of access parent methods.
+      this.__super__.call( "changeTitle", [sTitle] );
+    }
+  };
 });
 ```
 
@@ -199,18 +191,18 @@ Sometimes is better to decorate our modules instead of extending them. I recomme
 ```js
 Hydra.module.decorate( 'baseModuleId', 'decoratedModuleId', function( Bus, baseModule, Module, ErrorHandler, Api )
 {
-return {
-init: function ()
-{
-//do something on start a module
-baseModule.init();
-},
-onDestroy: function ()
-{
-//do something on stop a module
-baseModule.onDestroy();
-}
-};
+  return {
+    init: function ()
+    {
+      //do something on start a module
+      baseModule.init();
+    },
+    onDestroy: function ()
+    {
+      //do something on stop a module
+      baseModule.onDestroy();
+    }
+  };
 });
 ```
 
@@ -218,18 +210,19 @@ baseModule.onDestroy();
 ```js
 Hydra.module.register( 'moduleId', function( Bus, Module, ErrorHandler, Api )
 {
-return {
-events : {
-'channel': {
-'item:action1': function ( oData ) {}
-}
-},
-init: function ( oData ) {
-/* The subscribing of events is done by Hydra inside the core.
-* Bus.subscribe( this );
-*/
-}
-};
+  return {
+    events : {
+      'channel': {
+        'item:action1': function ( oData ) {}
+      }
+    },
+    init: function ( oData ) {
+      /**
+       * The subscribing of events is done by Hydra inside the core.
+       * Bus.subscribe( this );
+       */
+    }
+  };
 });
 ```
 
@@ -242,30 +235,30 @@ The publish method expect three arguments, but only the first two are mandatory,
 Hydra.bus.publish( 'channel_name', 'event_name', data );
 ```
 
-*Tip: 'global' channel is created by default to use it if you want to communicate with other modules that are not related with a specific channel. *
+*Tip: 'global' channel is created by default to use it if you want to communicate with other modules that are not related with a specific channel.
 
 ```js
 Hydra.module.register( 'moduleId', function( Bus, Module, ErrorHandler, Api )
 {
-return {
-events : {
-'channel': {
-'item:action1': function ( oData ) {}
-}
-},
-init: function ( oData ) {
-$( "#button" ).click( function(){
-Bus.publish( 'channel', 'item:action1', {} );
-});
-}
-};
+  return {
+    events : {
+      'channel': {
+        'item:action1': function ( oData ) {}
+      }
+    },
+    init: function ( oData ) {
+      $( "#button" ).click( function(){
+        Bus.publish( 'channel', 'item:action1', {} );
+      });
+    }
+  };
 });
 ```
 
 If you need compatibility with the previous event manager called Action, you can add it in your code to maintain compatibility with previous version's code. You can download it from: [Action](https://github.com/tcorral/Hydra_Extensions/tree/master/Sandbox)
 
 
-## Documentation
+## More documentation
 
 [Project Web](http://tcorral.github.io/Hydra.js)
 
