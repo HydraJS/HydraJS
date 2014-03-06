@@ -4,6 +4,8 @@ Hydra.js is a module manager oriented system.
 ## Updated to version {{ version }}
 
 [![Build Status](https://travis-ci.org/HydraJS/HydraJS.png)](https://travis-ci.org/HydraJS/HydraJS)
+[![Dependency Status](https://gemnasium.com/HydraJS/HydraJS.png)](https://gemnasium.com/HydraJS/HydraJS)
+[![NPM version](https://badge.fury.io/js/hydra.js.png)](http://badge.fury.io/js/hydra.js)
 
 [Changelog](https://raw.github.com/HydraJS/HydraJs/master/changelog.txt)
 
