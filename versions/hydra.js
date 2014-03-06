@@ -1,5 +1,12 @@
 (function (root, und) {
   'use strict';
+  root.__type__ = 'global';
+  if (root.document) {
+    root.document.__type__ = 'doc';
+  }
+  if (root.console) {
+    root.console.__type__ = 'log';
+  }
   /**
    * oModifyInit is an object where save the extensions to modify the init function to use by extensions.
    * @type {Object}
@@ -102,12 +109,29 @@
   }
 
   /**
+   * Return the list of the keys in an object
+   * @param {Object} oObject
+   */
+  function getKeys(oObject) {
+    var aKeys;
+    try {
+      aKeys = Object.keys(oObject);
+    } catch (erError) {
+      iterateObject(oObject, function (oValue, sKey) {
+        aKeys.push(sKey);
+      });
+    }
+    return aKeys;
+  }
+
+  /**
    * Returns an instance of Promise
-   * @return {Promise}
+   * @param {Function} [fpCallback]
+   * @returns {Promise}
    * @private
    */
-  function getPromise() {
-    return new Promise();
+  function getPromise(fpCallback) {
+    return new Promise(fpCallback);
   }
 
   /**
@@ -331,17 +355,7 @@
    * @private
    */
   function getObjectLength(oObj) {
-    var nLen, fpKeys = Object.keys;
-    if (fpKeys) {
-      nLen = fpKeys(oObj).length;
-    }
-    else {
-      nLen = 0;
-      iterateObject(oObj, function () {
-        nLen++;
-      });
-    }
-    return nLen;
+    return getKeys(oObj).length;
   }
 
   /**
@@ -640,7 +654,7 @@
    * @param {Object} oData
    * @returns {*}
    */
-  function preprocessPublishData(oData) {
+  function preprocessorsPublishData(oData) {
     return oData;
   }
 
@@ -752,7 +766,7 @@
       if (nLenSubscribers === 0) {
         return _false_;
       }
-      oData = preprocessPublishData(oData);
+      oData = preprocessorsPublishData(oData);
       while (!!(oSubscriber = aSubscribers.shift())) {
         _executeHandler(oSubscriber, oData, sChannelId, sEvent);
       }
@@ -763,8 +777,8 @@
      * Sets the preprocessor of data before send the data to handlers.
      * @param {Function} fpCallback
      */
-    preprocessPublishData: function (fpCallback) {
-      preprocessPublishData = function (oData) {
+    preprocessorPublishData: function (fpCallback) {
+      preprocessorsPublishData = function (oData) {
         return fpCallback(oData, clone);
       };
     },
@@ -776,7 +790,8 @@
       oChannels = {
         global: {}
       };
-    }
+    },
+    __type__: 'bus'
   };
 
   /**
@@ -793,9 +808,12 @@
   function dependencyInjector(sModuleId, aDependencies) {
     var sDependency,
       sPrefix,
+      oModules,
+      oMod,
       aPromises = [],
       nDependencies = 0,
       oMap,
+      aExtraDependencies,
       oDependency,
       oPromise,
       oResult = {
@@ -803,7 +821,20 @@
         dependencies: []
       };
 
-    aDependencies = (aDependencies !== und ? aDependencies : (oModules[sModuleId].dependencies || [])).concat();
+    oModules = Hydra.getCopyModules();
+    oMod = oModules[sModuleId];
+    if (!oMod) {
+      oMod = {};
+    }
+    if (!oMod.dependencies) {
+      oMod.dependencies = ['$$_bus', '$$_module', '$$_log', 'gl_Hydra'];
+    }
+    aExtraDependencies = oMod.dependencies;
+    if (!isArray(aExtraDependencies) && typeof aExtraDependencies === 'object') {
+      aExtraDependencies = getKeys(aExtraDependencies);
+    }
+
+    aDependencies = (isArray(aDependencies) ? aDependencies : ( aExtraDependencies || [])).concat();
 
     while (!!(sDependency = aDependencies.shift())) {
 
@@ -828,7 +859,7 @@
       } else {
         oDependency = getPromise();
         oDependency.resolve(sDependency);
-        oResult.mapping.push(oModules[sModuleId].dependencies[nDependencies]);
+        oResult.mapping.push(sDependency.__type__ || oMod.dependencies[nDependencies]);
       }
       aPromises.push(oDependency);
     }
@@ -854,7 +885,7 @@
       var oModule, fpInitProxy;
       oModule = oModules[sModuleId].creator.apply(oModules[sModuleId], [].slice.call(arguments, 1));
       oModule.__children__ = [];
-      oModule.dependencies = aDependencies;
+      oModule.dependencies = aDependencies || [].slice.call(arguments, 1);
       oModule.resolvedDependencies = mapping;
       oModule.__module_id__ = sModuleId;
       fpInitProxy = oModule.init || nullFunc;
@@ -917,7 +948,7 @@
 
   /**
    * stop more than one module at the same time.
-   * @param {Module} oModule
+   * @param {Object} oModule
    * @private
    */
   function _multiModuleStop(oModule) {
@@ -938,7 +969,8 @@
     log: function () {
     },
     error: function () {
-    }
+    },
+    __type__: 'log'
   };
 
   /**
@@ -972,7 +1004,7 @@
 
   /**
    * Stop only one module.
-   * @param {Module} oModule
+   * @param {Object} oModule
    * @param {String} sInstanceId
    * @private
    */
@@ -986,7 +1018,7 @@
 
   /**
    * Loops over instances of modules to stop them.
-   * @param {Module} oModule
+   * @param {Object} oModule
    * @param {String} sModuleId
    * @private
    */
@@ -1030,6 +1062,41 @@
   }
 
   /**
+   * Return the function to execute simple callbacks in extended modules.
+   * @param {Function} oCallback
+   * @param {Object} [oContext]
+   * @returns {Function}
+   */
+  function getSimpleFunction(oCallback, oContext) {
+    return function () {
+      return oCallback.apply(oContext || this, arguments);
+    };
+  }
+
+  /**
+   * Sets properties and methods from a template object.
+   * @param {Object} oMethodsObject
+   * @param {Object} oPropertiesObject
+   * @returns {Function}
+   */
+  function getCallbackToSetObjectFromTemplate(oMethodsObject, oPropertiesObject) {
+    return function (oValue, sKey) {
+      if (typeof oValue === 'function') {
+        oMethodsObject[sKey] = getSimpleFunction(oValue);
+      } else if (isArray(oValue)) {
+        oPropertiesObject[sKey] = copyArray(oValue);
+      } else if (typeof oValue === 'object') {
+        oPropertiesObject[sKey] = simpleMerge({}, oValue);
+      } else if (isInstanceOf(oValue, Date)) {
+        oPropertiesObject[sKey] = new Date();
+        oPropertiesObject[sKey].setTime(oValue.getTime());
+      } else {
+        oPropertiesObject[sKey] = oValue;
+      }
+    };
+  }
+
+  /**
    * Class to manage the modules.
    * @constructor
    * @class Module
@@ -1039,6 +1106,7 @@
   Module = {
     __super__: {},
     instances: {},
+    __type__: 'module',
     /**
      * type is a property to be able to know the class type.
      * @member Module.prototype
@@ -1098,8 +1166,7 @@
     setVars: function (oVar) {
       if (!isTypeOf(oVars, sNotDefined)) {
         oVars = simpleMerge(oVars, oVar);
-      }
-      else {
+      } else {
         oVars = oVar;
       }
     },
@@ -1136,8 +1203,7 @@
 
       if (bStartMultipleModules) {
         _multiModuleStart(this, copyArray(oModuleId), oIdInstance, oData, oSingle);
-      }
-      else {
+      } else {
         _singleModuleStart(this, oModuleId, oIdInstance, oData, oSingle);
       }
     },
@@ -1145,8 +1211,8 @@
     /**
      * Method to extend modules using inheritance or decoration pattern
      * @param {String} sBaseModule
-     * @param {String} sModuleDecorated
-     * @param {Array} aDependencies
+     * @param {String|Function} sModuleDecorated
+     * @param {Array|Function} aDependencies
      * @param {Function} fpDecorator
      * @return {Promise}
      */
@@ -1159,45 +1225,85 @@
         return oPromise;
       }
 
-      createInstance(sBaseModule, undefined, function (oInstance) {
-        if (isTypeOf(sBaseModule, 'string') && isTypeOf(sModuleDecorated, 'string')) {
-          oInstance.__children__.push(oDecorated);
-        }
+      createInstance(sBaseModule, aDependencies, function (oInstance) {
+        var oPromise2, aNoDependencies = [ '$$_bus', '$$_module', '$$_log', 'gl_Hydra' ];
+
         if (isTypeOf(sModuleDecorated, sFunctionType)) {
           fpDecorator = sModuleDecorated;
           sModuleDecorated = sBaseModule;
-          aDependencies = [ '$$_bus', '$$_module', '$$_log', 'gl_Hydra' ];
+          aDependencies = aNoDependencies;
         }
         if (isTypeOf(aDependencies, sFunctionType)) {
           fpDecorator = aDependencies;
-          aDependencies = [ '$$_bus', '$$_module', '$$_log', 'gl_Hydra' ];
+          aDependencies = aNoDependencies;
         }
-        aDependencies.push(oInstance);
-        oDecorated = fpDecorator.apply(fpDecorator, aDependencies);
-        oModules[sModuleDecorated] = new FakeModule(sModuleDecorated, function () {
-          // If we extend the module with the different name, we
-          // create proxy class for the original methods.
-          var oMerge = {};
-          oMerge = simpleMerge(oMerge, oInstance);
-          oMerge = simpleMerge(oMerge, oDecorated);
-          oMerge.__children__ = [];
-          oMerge = simpleMerge(oMerge, {
-            __super__: {
-              __call__: function (sKey, aArgs) {
-                return oInstance[sKey].apply(oMerge, aArgs);
-              }
+        oPromise2 = dependencyInjector(sModuleDecorated, aDependencies);
+        oPromise2.then(function () {
+          var aDepends = [].slice.call(arguments, 1),
+            oParentProperties = {},
+            oParentMethods = {},
+            Parent,
+            Child;
+          oModules[sModuleDecorated] = new FakeModule(sModuleDecorated, function () {
+            // If we extend the module with the different name, we
+            // create proxy class for the original methods.
+            aDepends.push(oInstance);
+            oDecorated = fpDecorator.apply(fpDecorator, aDepends);
+
+            if (isTypeOf(sBaseModule, 'string') && isTypeOf(sModuleDecorated, 'string')) {
+              oInstance.__children__.push(oDecorated);
             }
+
+            iterateObject(oInstance, getCallbackToSetObjectFromTemplate(oParentMethods, oParentProperties));
+
+            Parent = function () {
+              var self = this;
+              iterateObject(oParentProperties, function (oValue, sKey) {
+                self[sKey] = oValue;
+              });
+            };
+            Parent.prototype = oParentMethods;
+
+            Child = function () {
+              var self = this, _super = oParentMethods;
+              Parent.apply(self, arguments);
+
+              _super.parentModule = sBaseModule;
+              iterateObject(oDecorated, getCallbackToSetObjectFromTemplate(self, self));
+              this.uber = _super;
+
+              if (oInstance.uber) {
+                _super.uber = {};
+                iterateObject(oInstance.uber, function (oValue, sKey) {
+                  var fpCallback = getSimpleFunction(oValue, self);
+                  if (!self.uber[sKey]) {
+                    self.uber[sKey] = fpCallback;
+                  }
+                  // If the son does not have the method but the parent has then the son should have it too.
+                  _super.uber[sKey] = fpCallback;
+                });
+              }
+
+              this.__children__ = [];
+              this.__super__ = {
+                __call__: function (sKey, aArgs) {
+                  return oInstance[sKey].apply(this, aArgs);
+                }
+              };
+            };
+            Child.prototype = new Parent();
+
+            return new Child();
           });
-          return oMerge;
+          oModules[sModuleDecorated].dependencies = aDependencies;
+          oPromise.resolve(oModules[sModuleDecorated]);
         });
-        oModules[sModuleDecorated].dependencies = aDependencies;
-        oPromise.resolve(oModules[sModuleDecorated]);
       });
       return oPromise;
     },
     /**
      * Alias decorate to extend modules.
-     * @return {Module}
+     * @return {Promise}
      */
     decorate: function () {
       return this.extend.apply(this, arguments);
@@ -1210,13 +1316,12 @@
      * @return {Boolean}
      */
     isModuleStarted: function (sModuleId, sInstanceId) {
-      var bStarted = _false_;
+      var bStarted = _false_,
+        bModuleDefined = isTypeOf(oModules[sModuleId], sNotDefined);
       if (isTypeOf(sInstanceId, sNotDefined)) {
-        bStarted = ( !isTypeOf(oModules[sModuleId], sNotDefined) &&
-          getObjectLength(oModules[sModuleId].instances) > 0 );
-      }
-      else {
-        bStarted = ( !isTypeOf(oModules[sModuleId], sNotDefined) && !isTypeOf(oModules[sModuleId].instances[sInstanceId], sNotDefined) );
+        bStarted = ( !bModuleDefined && getObjectLength(oModules[sModuleId].instances) > 0 );
+      } else {
+        bStarted = ( !bModuleDefined && !isTypeOf(oModules[sModuleId].instances[sInstanceId], sNotDefined) );
       }
       return bStarted;
     },
@@ -1238,7 +1343,7 @@
      * When stop is called the module will call the destroy method and will nullify the instance.
      * @member Module.prototype
      * @param {String} sModuleId
-     * @param {String} sInstanceId
+     * @param {String} [sInstanceId]
      * @return {Boolean}
      */
     stop: function (sModuleId, sInstanceId) {
@@ -1249,8 +1354,7 @@
       }
       if (!isTypeOf(sInstanceId, sNotDefined)) {
         _singleModuleStop(oModule, sInstanceId);
-      }
-      else {
+      } else {
         _multiModuleStop(oModule);
       }
       return true;
@@ -1272,7 +1376,7 @@
      * remove is the method that will remove the full module from the oModules object
      * @member Module.prototype
      * @param {String} sModuleId
-     * @return {Module|null}
+     * @return {*}
      */
     remove: function (sModuleId) {
       var oModule = oModules[sModuleId];
@@ -1427,7 +1531,7 @@
      * @type {String}
      * @static
      */
-    version: '3.9.2',
+    version: '3.9.7',
 
     /**
      * bus is a singleton instance of the bus to subscribe and publish content in channels.
@@ -1455,6 +1559,7 @@
      */
     setErrorHandler: function (oErrorHandler) {
       ErrorHandler = oErrorHandler;
+      ErrorHandler.__type__ = 'log';
     },
 
     /**
@@ -1517,8 +1622,7 @@
     extend: function (sIdExtension, oExtension) {
       if (isTypeOf(this[sIdExtension], sNotDefined)) {
         this[sIdExtension] = oExtension;
-      }
-      else {
+      } else {
         this[sIdExtension] = simpleMerge(this[sIdExtension], oExtension);
       }
     },
@@ -1618,7 +1722,8 @@
       this.addMapping(sPrefix, oMapping, function (sDependency) {
         return fpCallback.call(oMapping, sDependency);
       });
-    }
+    },
+    __type__: 'api'
   };
 
   /**
@@ -1676,12 +1781,13 @@
     /**
      * Wraps the module extend
      * @member FakeModule.prototype
-     * @param {Module} oSecondParameter
-     * @param {Module} oThirdParameter
+     * @param {String|Function} oSecondParameter
+     * @param {Array|Function} oThirdParameter
+     * @param {Function} oFourthParameter
      * @return {FakeModule}
      */
-    extend: function (oSecondParameter, oThirdParameter) {
-      Module.extend(this.sModuleId, oSecondParameter, oThirdParameter);
+    extend: function (oSecondParameter, oThirdParameter, oFourthParameter) {
+      Module.extend(this.sModuleId, oSecondParameter, oThirdParameter, oFourthParameter);
       return this;
     },
 
@@ -1702,8 +1808,7 @@
   root.Hydra = Hydra;
   if (isNodeEnvironment) {
     module.exports = Hydra;
-  }
-  else if (typeof define !== sNotDefined) {
+  } else if (typeof define !== sNotDefined) {
     define('hydra', [], function () {
       return Hydra;
     });
