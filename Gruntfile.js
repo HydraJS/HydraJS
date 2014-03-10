@@ -9,16 +9,45 @@ module.exports = function (grunt) {
       return data;
     },
     srcHintOptions = readOptionalJSON('src/.jshintrc'),
-    fs = require('fs'),
-    swig = require('swig');
+    pkg = grunt.file.readJSON('package.json');
 
   // Project configuration.
   grunt.initConfig({
-    pkg: grunt.file.readJSON('package.json'),
+    pkg: pkg,
     jshint: {
       dist: {
         src: [ "src/Hydra.js" ],
         options: srcHintOptions
+      }
+    },
+    compile_templates_hydra: {
+      devel: {
+        base: __dirname,
+        templates: {
+          folder: 'templates',
+          files: [
+            {
+              src: 'bower.tpl',
+              dest: 'bower.json'
+            },
+            {
+              src: 'component.tpl',
+              dest: 'component.json'
+            },
+            {
+              src: 'README.tpl',
+              dest: 'README.md'
+            }
+          ]
+        },
+        file: 'versions/hydra.min.js.gz',
+        variables: {
+          version: pkg.version,
+          description: pkg.description,
+          repository_type: pkg.repository.type,
+          repository_url: pkg.repository.url.replace('https', 'git'),
+          repository_shorten: pkg.repository.url.replace('https://github.com/', '')
+        }
       }
     },
     karma: {
@@ -35,6 +64,24 @@ module.exports = function (grunt) {
         cwd: 'versions/',
         src: ['hydra.min.js'],
         dest: 'versions/'
+      },
+      doc_zip: {
+        options: {
+          mode: 'zip',
+          archive: '../HydraJS_Web/downloads/apis/Hydra.js_API_v' + pkg.version + '.zip'
+        },
+        expand: true,
+        cwd: '../HydraJS_Web/',
+        src: ['apis/Hydra.js_API_v' + pkg.version + '/**']
+      },
+      doc_tar: {
+        options: {
+          mode: 'tar',
+          archive: '../HydraJS_Web/downloads/apis/Hydra.js_API_v' + pkg.version + '.tar.gz'
+        },
+        expand: true,
+        cwd: '../HydraJS_Web/',
+        src: ['apis/Hydra.js_API_v' + pkg.version + '/**']
       }
     },
     copy: {
@@ -42,6 +89,16 @@ module.exports = function (grunt) {
         files: [
           {expand: true, cwd: 'src/', src: ['hydra.js'], dest: 'versions/'}
         ]
+      }
+    },
+    jsdoc : {
+      dist : {
+        src: ['src/Hydra.js', 'README.md'],
+        options: {
+          destination: '../HydraJS_Web/apis/Hydra.js_API_v' + pkg.version,
+          template: "./node_modules/grunt-jsdoc/node_modules/ink-docstrap/template",
+          configure: "./node_modules/grunt-jsdoc/node_modules/ink-docstrap/template/jsdoc.conf.json"
+        }
       }
     },
     uglify: {
@@ -94,67 +151,13 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-contrib-compress');
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-release-steps');
+  grunt.loadNpmTasks('grunt-jsdoc');
+  grunt.loadNpmTasks('grunt-compile-templates-hydra');
 
-  grunt.registerTask('readme', 'Creates a README.md from template', function () {
-    var done = this.async(),
-      oREADMETemplate = swig.compileFile('templates/README.tpl');
-    fs.stat('versions/hydra.min.js.gz', function (err, stats) {
-      fs.writeFile('README.md', oREADMETemplate({
-        version: grunt.file.readJSON('package.json').version,
-        size: (stats.size / 1024).toFixed(2),
-        description: grunt.file.readJSON('package.json').description,
-        repository_type: grunt.file.readJSON('package.json').repository.type,
-        repository_url: grunt.file.readJSON('package.json').repository.url.replace('https', 'git'),
-        repository_shorten: grunt.file.readJSON('package.json').repository.url.replace('https://github.com/', '')
-      }), function (err) {
-        if (err) {
-          throw err;
-        }
-        done();
-      });
-    });
-  });
-  grunt.registerTask('bower', 'Creates a bower.json from template', function () {
-    var done = this.async(),
-      oBowerTemplate = swig.compileFile('templates/bower.tpl');
-    fs.stat('versions/hydra.min.js.gz', function (err, stats) {
-      fs.writeFile('bower.json', oBowerTemplate({
-        version: grunt.file.readJSON('package.json').version,
-        size: (stats.size / 1024).toFixed(2),
-        description: grunt.file.readJSON('package.json').description,
-        repository_type: grunt.file.readJSON('package.json').repository.type,
-        repository_url: grunt.file.readJSON('package.json').repository.url.replace('https', 'git'),
-        repository_shorten: grunt.file.readJSON('package.json').repository.url.replace('https://github.com/', '')
-      }), function (err) {
-        if (err) {
-          throw err;
-        }
-        done();
-      });
-    });
-  });
-  grunt.registerTask('component', 'Creates a component.json from template', function () {
-    var done = this.async(),
-      oComponentTemplate = swig.compileFile('templates/component.tpl');
-    fs.stat('versions/hydra.min.js.gz', function (err, stats) {
-      fs.writeFile('component.json', oComponentTemplate({
-        version: grunt.file.readJSON('package.json').version,
-        size: (stats.size / 1024).toFixed(2),
-        description: grunt.file.readJSON('package.json').description,
-        repository_type: grunt.file.readJSON('package.json').repository.type,
-        repository_url: grunt.file.readJSON('package.json').repository.url.replace('https', 'git'),
-        repository_shorten: grunt.file.readJSON('package.json').repository.url.replace('https://github.com/', '')
-      }), function (err) {
-        if (err) {
-          throw err;
-        }
-        done();
-      });
-    });
-  });
   // Default task(s).
   grunt.registerTask('test', ['jshint', 'karma']);
-  grunt.registerTask('default', ['jshint', 'karma', 'uglify', 'compress', 'copy', 'readme', 'bower', 'component']);
-  grunt.registerTask('deploy', ['jshint', 'karma', 'uglify', 'compress', 'copy', 'release:bump:patch', 'readme', 'release:add:commit:push:tag:pushTags:npm']);
+  grunt.registerTask('document', ['jsdoc', 'compress:doc_zip', 'compress:doc_tar', 'compile_templates_hydra']);
+  grunt.registerTask('default', ['test', 'uglify', 'copy', 'compress:main', 'document']);
+  grunt.registerTask('deploy', ['test', 'uglify', 'copy', 'jsdoc', 'compress', 'release:bump:patch', 'compile_templates_hydra', 'release:add:commit:push:tag:pushTags:npm']);
 
 };
