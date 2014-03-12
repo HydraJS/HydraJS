@@ -1,4 +1,6 @@
 ChangeLog:
+3.9.9
+	- Fix bug when extending modules, the supplied arguments to the extended module was not the correct one.
 3.9.8
 	- Fix bug when extending modules.
 	    - The extended modules had no the correct access to their dependencies.

@@ -13,84 +13,84 @@
    * @private
    */
   var oModifyInit = {},
-    /**
-     * Special Mapping
-     * @type {Object}
-     * @private
-     */
-      oMapping,
-    /**
-     * Mapping of prefixes by object to check to resolve dependencies.
-     * @type {Object}
-     * @private
-     */
-      oMappingMaps = { ___order___: [] },
-    /**
-     * set the global namespace to be the same as root
-     * use Hydra.setNamespace to change it.
-     * @private
-     */
-      namespace = root,
-    /**
-     * Cache 'undefined' string to test typeof
-     * @type {String}
-     * @private
-     */
-      sNotDefined = 'undefined',
-    /**
-     * Property that will save the registered modules
-     * @type {Object}
-     * @private
-     */
-      oModules = {},
-    /**
-     * Private variables object to be shared between modules
-     * @type {Object}
-     * @private
-     */
-      oVars = {},
-    /**
-     * Object type string
-     * @type {String}
-     * @private
-     */
-      sObjectType = 'object',
-    /**
-     * Contains a reference to false to decrease final size
-     * @type {Boolean}
-     * @private
-     */
-      _false_ = false,
-    /**
-     * Function type string
-     * @type {String}
-     * @private
-     */
-      sFunctionType = 'function',
-    /**
-     * Used to activate the debug mode
-     * @type {Boolean}
-     * @private
-     */
-      bDebug = _false_,
-    /**
-     * Private object to save the channels for communicating event driven
-     * @type {Object}
-     * @private
-     */
-      oChannels = {
-      global: {}
-    },
-    /**
-     * Check if Hydra.js is loaded in Node.js environment
-     * @type {Boolean}
-     * @private
-     */
-      isNodeEnvironment = isTypeOf(root.exports, sObjectType) &&
-      isTypeOf(root.module, sObjectType) &&
-      isTypeOf(root.module.exports, sObjectType) &&
-      isTypeOf(root.require, sFunctionType),
-    Hydra, ErrorHandler, Bus, Module;
+  /**
+   * Special Mapping
+   * @type {Object}
+   * @private
+   */
+  oMapping,
+  /**
+   * Mapping of prefixes by object to check to resolve dependencies.
+   * @type {Object}
+   * @private
+   */
+  oMappingMaps = { ___order___: [] },
+  /**
+   * set the global namespace to be the same as root
+   * use Hydra.setNamespace to change it.
+   * @private
+   */
+  namespace = root,
+  /**
+   * Cache 'undefined' string to test typeof
+   * @type {String}
+   * @private
+   */
+  sNotDefined = 'undefined',
+  /**
+   * Property that will save the registered modules
+   * @type {Object}
+   * @private
+   */
+  oModules = {},
+  /**
+   * Private variables object to be shared between modules
+   * @type {Object}
+   * @private
+   */
+  oVars = {},
+  /**
+   * Object type string
+   * @type {String}
+   * @private
+   */
+  sObjectType = 'object',
+  /**
+   * Contains a reference to false to decrease final size
+   * @type {Boolean}
+   * @private
+   */
+  _false_ = false,
+  /**
+   * Function type string
+   * @type {String}
+   * @private
+   */
+  sFunctionType = 'function',
+  /**
+   * Used to activate the debug mode
+   * @type {Boolean}
+   * @private
+   */
+  bDebug = _false_,
+  /**
+   * Private object to save the channels for communicating event driven
+   * @type {Object}
+   * @private
+   */
+  oChannels = {
+    global: {}
+  },
+  /**
+   * Check if Hydra.js is loaded in Node.js environment
+   * @type {Boolean}
+   * @private
+   */
+  isNodeEnvironment = isTypeOf(root.exports, sObjectType) &&
+  isTypeOf(root.module, sObjectType) &&
+  isTypeOf(root.module.exports, sObjectType) &&
+  isTypeOf(root.require, sFunctionType),
+  Hydra, ErrorHandler, Bus, Module;
 
   /**
    * Helper to iterate over objects using for-in approach
@@ -200,14 +200,14 @@
    */
   function getDependencyThroughAllMaps(sDependency) {
     var oMap,
-      oDependency,
-      nIndexOrder,
-      nLenOrder,
-      aOrderDependency = oMappingMaps.___order___;
+    oDependency,
+    nIndexOrder,
+    nLenOrder,
+    aOrderDependency = oMappingMaps.___order___;
 
     createMapping(oMappingMaps, '__', root, function (sDependency) {
       var oDependency,
-        oPromise = getPromise();
+      oPromise = getPromise();
       oDependency = resolveNamespace(sDependency);
       oPromise.resolve(oDependency);
       return oPromise;
@@ -250,8 +250,8 @@
    */
   function resolveNamespace(sNamespace) {
     var oObj = root,
-      aElements = sNamespace.split('.'),
-      sElement;
+    aElements = sNamespace.split('.'),
+    sElement;
     while (!!( sElement = aElements.shift() )) {
       oObj = oObj[sElement] !== und ? oObj[sElement] : oObj[sElement] = {};
     }
@@ -322,7 +322,7 @@
    */
   function isJqueryObject(oObj) {
     var isJquery = _false_,
-      $ = root.jQuery;
+    $ = root.jQuery;
     if ($) {
       isJquery = isInstanceOf(oObj, $);
     }
@@ -344,7 +344,7 @@
    */
   function generateUniqueKey() {
     var oMath = Math, sFirstToken = +new Date() + '',
-      sSecondToken = oMath.floor(oMath.random() * ( 999999 - 1 + 1 )) + 1;
+    sSecondToken = oMath.floor(oMath.random() * ( 999999 - 1 + 1 )) + 1;
     return sFirstToken + '_' + sSecondToken;
   }
 
@@ -483,11 +483,11 @@
      and all the objects that are instances of a constructor different from Object.
      */
     if (null == oObject ||      // Is null or undefined
-      !isTypeOf(oObject, sObjectType) ||  // Is not an object (primitive)
-      oObject.constructor.toString().indexOf('Object()') === -1 ||  // Is an instance
-      isEvent(oObject) ||   // Is an event
-      isJqueryObject(oObject) ||  // Is a jQuery object
-      ( oObject.nodeType && oObject.nodeType === 1 )) { // Is a DOM element
+    !isTypeOf(oObject, sObjectType) ||  // Is not an object (primitive)
+    oObject.constructor.toString().indexOf('Object()') === -1 ||  // Is an instance
+    isEvent(oObject) ||   // Is an event
+    isJqueryObject(oObject) ||  // Is a jQuery object
+    ( oObject.nodeType && oObject.nodeType === 1 )) { // Is a DOM element
       return oObject;
     }
 
@@ -586,7 +586,7 @@
    */
   function _removeSubscribers(aSubscribers, oSubscriber) {
     var nUnsubscribed = 0,
-      nIndex;
+    nIndex;
     if (!isTypeOf(aSubscribers, sNotDefined)) {
       nIndex = aSubscribers.length - 1;
       for (; nIndex >= 0; nIndex--) {
@@ -686,8 +686,8 @@
      */
     unsubscribeFrom: function (sChannelId, sEventType, oSubscriber) {
       var aChannelEvents = _getChannelEvents(sChannelId, sEventType),
-        oItem,
-        nEvent = aChannelEvents.length - 1;
+      oItem,
+      nEvent = aChannelEvents.length - 1;
 
       for (; nEvent >= 0; nEvent--) {
         oItem = aChannelEvents[nEvent];
@@ -761,8 +761,8 @@
      */
     publish: function (sChannelId, sEvent, oData) {
       var aSubscribers = copyArray(this.subscribers(sChannelId, sEvent)),
-        oSubscriber,
-        nLenSubscribers = aSubscribers.length;
+      oSubscriber,
+      nLenSubscribers = aSubscribers.length;
       if (nLenSubscribers === 0) {
         return _false_;
       }
@@ -807,19 +807,19 @@
    */
   function dependencyInjector(sModuleId, aDependencies) {
     var sDependency,
-      sPrefix,
-      oModules,
-      oMod,
-      aPromises = [],
-      nDependencies = 0,
-      oMap,
-      aExtraDependencies,
-      oDependency,
-      oPromise,
-      oResult = {
-        mapping: [],
-        dependencies: []
-      };
+    sPrefix,
+    oModules,
+    oMod,
+    aPromises = [],
+    nDependencies = 0,
+    oMap,
+    aExtraDependencies,
+    oDependency,
+    oPromise,
+    oResult = {
+      mapping: [],
+      dependencies: []
+    };
 
     oModules = Hydra.getCopyModules();
     oMod = oModules[sModuleId];
@@ -1085,7 +1085,7 @@
         oMethodsObject[sKey] = getSimpleFunction(oValue);
       } else if (isArray(oValue)) {
         oPropertiesObject[sKey] = copyArray(oValue);
-      } else if (typeof oValue === 'object') {
+      } else if (typeof oValue === 'object' && oValue !== null ) {
         oPropertiesObject[sKey] = simpleMerge({}, oValue);
       } else if (isInstanceOf(oValue, Date)) {
         oPropertiesObject[sKey] = new Date();
@@ -1239,15 +1239,16 @@
         }
         oPromise2 = dependencyInjector(sModuleDecorated, aDependencies);
         oPromise2.then(function () {
-          var aDepends = [].slice.call(arguments, 1),
-            oParentProperties = {},
-            oParentMethods = {},
-            Parent,
-            Child;
+          var oParentProperties = {},
+          oParentMethods = {},
+          Parent,
+          Child;
           oModules[sModuleDecorated] = new FakeModule(sModuleDecorated, function () {
+            var aDepends = [].slice.call(arguments);
+            aDepends.push(oInstance);
             // If we extend the module with the different name, we
             // create proxy class for the original methods.
-            aDepends.push(oInstance);
+
             oDecorated = fpDecorator.apply(fpDecorator, aDepends);
 
             if (isTypeOf(sBaseModule, 'string') && isTypeOf(sModuleDecorated, 'string')) {
@@ -1317,7 +1318,7 @@
      */
     isModuleStarted: function (sModuleId, sInstanceId) {
       var bStarted = _false_,
-        bModuleDefined = isTypeOf(oModules[sModuleId], sNotDefined);
+      bModuleDefined = isTypeOf(oModules[sModuleId], sNotDefined);
       if (isTypeOf(sInstanceId, sNotDefined)) {
         bStarted = ( !bModuleDefined && getObjectLength(oModules[sModuleId].instances) > 0 );
       } else {
@@ -1510,7 +1511,7 @@
       for (nArg = 0; nArg < nLenArgs; nArg++) {
         oArg = aArgs[nArg];
         oArg.then(getThenCallbacks(nArg, 'resolve', oData, nLenArgs, oPromise, aSolutions),
-          getThenCallbacks(nArg, 'reject', oData, nLenArgs, oPromise, aSolutions));
+        getThenCallbacks(nArg, 'reject', oData, nLenArgs, oPromise, aSolutions));
       }
     }
 
@@ -1568,7 +1569,7 @@
      * @type {Promise}
      * @static
      */
-    Promise: root.Promise || Promise,
+    Promise: Promise,//root.Promise || Promise,
 
     /**
      * Returns the constructor of Deferred object
@@ -1576,7 +1577,7 @@
      * @type {Promise}
      * @static
      */
-    Deferred: root.Promise || Promise,
+    Deferred: Promise, //root.Promise || Promise,
 
     /**
      * Sugar method to generate Deferred objects in a simple way

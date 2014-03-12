@@ -2107,4 +2107,49 @@
     });
   });
 
+  describe('Extension dependencies bug', function () {
+    it('should check that the extended module should get and access to a new dependencies array each time:first execution', function () {
+      Hydra.module.register('base-module', function () {
+        return {
+          init: function () {
+          }
+        };
+      });
+      Hydra.module.extend('base-module', 'extended-module', function ( oBus ) {
+        return {
+          init: function () {
+            oBus.publish('channel', 'test:action');
+          }
+        };
+      });
+
+      Hydra.module.test('extended-module', function ( oMod ) {
+        oMod.init();
+        expect( oMod.mocks.bus.publish.callCount ).toEqual( 1 );
+      });
+    });
+    it('should check that the extended module should get and access to a new dependencies array each time:second execution', function () {
+      Hydra.module.register('base-module', function () {
+        return {
+          init: function () {
+          }
+        };
+      });
+      Hydra.module.extend('base-module', 'extended-module', function ( oBus ) {
+        return {
+          init: function () {
+            oBus.publish('channel', 'test:action');
+          }
+        };
+      });
+
+      Hydra.module.test('extended-module', function ( oMod ) {
+        oMod.init();
+        Hydra.module.test('extended-module', function ( oMod ) {
+          oMod.init();
+          expect( oMod.mocks.bus.publish.callCount ).toEqual( 1 );
+        });
+      });
+    });
+  });
 }());

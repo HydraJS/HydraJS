@@ -64,24 +64,6 @@ module.exports = function (grunt) {
         cwd: 'versions/',
         src: ['hydra.min.js'],
         dest: 'versions/'
-      },
-      doc_zip: {
-        options: {
-          mode: 'zip',
-          archive: '../HydraJS_Web/downloads/apis/Hydra.js_API_v' + pkg.version + '.zip'
-        },
-        expand: true,
-        cwd: '../HydraJS_Web/',
-        src: ['apis/Hydra.js_API_v' + pkg.version + '/**']
-      },
-      doc_tar: {
-        options: {
-          mode: 'tar',
-          archive: '../HydraJS_Web/downloads/apis/Hydra.js_API_v' + pkg.version + '.tar.gz'
-        },
-        expand: true,
-        cwd: '../HydraJS_Web/',
-        src: ['apis/Hydra.js_API_v' + pkg.version + '/**']
       }
     },
     copy: {
@@ -89,16 +71,6 @@ module.exports = function (grunt) {
         files: [
           {expand: true, cwd: 'src/', src: ['hydra.js'], dest: 'versions/'}
         ]
-      }
-    },
-    jsdoc : {
-      dist : {
-        src: ['src/Hydra.js', 'README.md'],
-        options: {
-          destination: '../HydraJS_Web/apis/Hydra.js_API_v' + pkg.version,
-          template: "./node_modules/grunt-jsdoc/node_modules/ink-docstrap/template",
-          configure: "./node_modules/grunt-jsdoc/node_modules/ink-docstrap/template/jsdoc.conf.json"
-        }
       }
     },
     uglify: {
@@ -151,13 +123,12 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-contrib-compress');
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-release-steps');
-  grunt.loadNpmTasks('grunt-jsdoc');
   grunt.loadNpmTasks('grunt-compile-templates-hydra');
 
   // Default task(s).
   grunt.registerTask('test', ['jshint', 'karma']);
-  grunt.registerTask('document', ['jsdoc', 'compress:doc_zip', 'compress:doc_tar', 'compile_templates_hydra']);
+  grunt.registerTask('document', ['compile_templates_hydra']);
   grunt.registerTask('default', ['test', 'uglify', 'copy', 'compress:main', 'document']);
-  grunt.registerTask('deploy', ['test', 'uglify', 'copy', 'jsdoc', 'compress', 'release:bump:patch', 'compile_templates_hydra', 'release:add:commit:push:tag:pushTags:npm']);
+  grunt.registerTask('deploy', ['test', 'uglify', 'copy', 'compress', 'release:bump:patch', 'compile_templates_hydra', 'release:add:commit:push:tag:pushTags:npm']);
 
 };
