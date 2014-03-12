@@ -1,4 +1,6 @@
 ChangeLog:
+3.9.10
+	- Update karma-require to version 0.2.0.
 3.9.9
 	- Fix bug when extending modules, the supplied arguments to the extended module was not the correct one.
 3.9.8
