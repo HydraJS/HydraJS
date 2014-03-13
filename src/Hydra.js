@@ -1694,6 +1694,7 @@
      */
     setNamespace: function (_namespace) {
       namespace = _namespace;
+      createMapping(oMappingMaps, 'ns_', namespace);
     },
 
     /**

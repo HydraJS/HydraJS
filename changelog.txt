@@ -1,4 +1,6 @@
 ChangeLog:
+3.9.11
+    - Update namespace mapping when the Namespace is changed using setNamespace method
 3.9.10
 	- Update karma-require to version 0.2.0.
 3.9.9
