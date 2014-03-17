@@ -21,26 +21,7 @@ module.exports = function (grunt) {
       }
     },
     compile_templates_hydra: {
-      devel: {
-        base: __dirname,
-        templates: {
-          folder: 'templates',
-          files: [
-            {
-              src: 'bower.tpl',
-              dest: 'bower.json'
-            },
-            {
-              src: 'component.tpl',
-              dest: 'component.json'
-            },
-            {
-              src: 'README.tpl',
-              dest: 'README.md'
-            }
-          ]
-        },
-        file: 'versions/hydra.min.js.gz',
+      options: {
         variables: {
           version: pkg.version,
           description: pkg.description,
@@ -48,11 +29,21 @@ module.exports = function (grunt) {
           repository_url: pkg.repository.url.replace('https', 'git'),
           repository_shorten: pkg.repository.url.replace('https://github.com/', '')
         }
-      }
-    },
-    karma: {
-      unit: {
-        configFile: 'config/karma.conf.js'
+      },
+      base: {
+        files: {
+          '<%= compress.main.dest %>hydra.js': '<%= jshint.dist.src[0] %>'
+        }
+      },
+      devel: {
+        options: {
+          file: '<%= compress.main.dest%><%= compress.main.src%>.gz'
+        },
+        files: {
+          'bower.json': 'templates/bower.tpl',
+          'component.json': 'templates/component.tpl',
+          'README.md': 'templates/README.tpl'
+        }
       }
     },
     compress: {
@@ -62,27 +53,25 @@ module.exports = function (grunt) {
         },
         expand: true,
         cwd: 'versions/',
-        src: ['hydra.min.js'],
+        src: 'hydra.min.js',
         dest: 'versions/'
       }
     },
-    copy: {
-      main: {
-        files: [
-          {expand: true, cwd: 'src/', src: ['hydra.js'], dest: 'versions/'}
-        ]
+    karma: {
+      unit: {
+        configFile: 'config/karma.conf.js'
       }
     },
     uglify: {
       options: {
+        sourceMappingURL: "hydra.min.map",
+        sourceMap: '<%= compress.main.dest %><%= uglify.options.sourceMappingURL%>',
         banner: '/*! Hydra.js v<%= pkg.version %> | Date:<%= grunt.template.today("yyyy-mm-dd") %> |' +
           ' License: https://raw.github.com/tcorral/Hydra.js/master/LICENSE|' +
           ' (c) 2009, 2013\n' +
-          '//@ sourceMappingURL=hydra.min.map\n' +
+          '//@ sourceMappingURL=<%= uglify.options.sourceMappingURL%>\n' +
           '*/\n',
         preserveComments: "some",
-        sourceMap: 'versions/hydra.min.map',
-        sourceMappingURL: "hydra.min.map",
         report: "min",
         beautify: {
           ascii_only: true
@@ -99,8 +88,8 @@ module.exports = function (grunt) {
         }
       },
       build: {
-        src: 'src/Hydra.js',
-        dest: 'versions/hydra.min.js'
+        src: '<%= compress.main.dest %>hydra.js',
+        dest: '<%= compress.main.dest %><%= compress.main.src %>'
       }
     },
     release: {
@@ -121,14 +110,12 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks("grunt-karma");
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-compress');
-  grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-release-steps');
   grunt.loadNpmTasks('grunt-compile-templates-hydra');
 
   // Default task(s).
   grunt.registerTask('test', ['jshint', 'karma']);
-  grunt.registerTask('document', ['compile_templates_hydra']);
-  grunt.registerTask('default', ['test', 'uglify', 'copy', 'compress:main', 'document']);
-  grunt.registerTask('deploy', ['test', 'uglify', 'copy', 'compress', 'release:bump:patch', 'compile_templates_hydra', 'release:add:commit:push:tag:pushTags:npm']);
+  grunt.registerTask('default', ['test', 'compile_templates_hydra:base', 'uglify', 'compress:main', 'compile_templates_hydra:devel' ]);
+  grunt.registerTask('deploy', ['test', 'compile_templates_hydra:base', 'uglify', 'compress', 'release:bump:patch', 'compile_templates_hydra:devel', 'release:add:commit:push:tag:pushTags:npm']);
 
 };

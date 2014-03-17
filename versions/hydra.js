@@ -1532,7 +1532,7 @@
      * @type {String}
      * @static
      */
-    version: '3.9.9',
+    version: '3.9.11',
 
     /**
      * bus is a singleton instance of the bus to subscribe and publish content in channels.
