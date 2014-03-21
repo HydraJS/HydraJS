@@ -174,6 +174,7 @@
     };
   }
 
+
   /**
    * Returns the promise callback by type
    * @param {Object}oContext
@@ -183,11 +184,27 @@
    */
   function getPromiseCallbacks(oContext, sType) {
     return function () {
+      var aCompleted, nLenPromises, oDeferred, aPromises, nPromise, oPromise, aResults = [];
       oContext.bCompleted = true;
       oContext.sType = sType;
       oContext.oResult = arguments;
       while (oContext.aPending[0]) {
         oContext.aPending.shift()[sType].apply(oContext, arguments);
+      }
+      oDeferred = oContext.oDeferred;
+      if(oDeferred){
+        aCompleted = [];
+        aPromises = oDeferred.aPromises;
+        nLenPromises = aPromises.length;
+        aResults = [];
+        for(nPromise = 0; nPromise < nLenPromises; nPromise++){
+          oPromise = aPromises[nPromise];
+          aCompleted.push(Number(oPromise.bCompleted));
+          aResults.push( oPromise.oResult );
+        }
+        if(aCompleted.join('').indexOf('0') === -1){
+          oDeferred[sType].apply(oDeferred, aResults);
+        }
       }
     };
   }
@@ -1288,7 +1305,7 @@
               this.__children__ = [];
               this.__super__ = {
                 __call__: function (sKey, aArgs) {
-                  return oInstance[sKey].apply(this, aArgs);
+                  return oInstance[sKey].apply(self, aArgs);
                 }
               };
             };
@@ -1417,6 +1434,9 @@
    */
   function Promise(fpCallback) {
     // Pending callbacks
+    this.oDeferred = null;
+    this.aResults = [];
+    this.aPromises = [];
     this.aPending = [];
     this.bCompleted = false;
     this.sType = '';
@@ -1440,11 +1460,12 @@
      * @return {Promise} Promise instance
      */
     then: function (fpSuccess, fpFailure) {
+      var oResult = this.oResult;
       if (this.bCompleted) {
         if (this.sType === 'resolve') {
-          fpSuccess.apply(fpSuccess, this.oResult);
+          fpSuccess.apply(fpSuccess, oResult);
         } else {
-          fpFailure.apply(fpFailure, this.oResult);
+          fpFailure.apply(fpFailure, oResult);
         }
       } else {
         this.aPending.push({ resolve: fpSuccess, reject: fpFailure});
@@ -1486,6 +1507,16 @@
      */
     'catch': function (fpFailure) {
       return this.fail(fpFailure);
+    },
+    /**
+     * Adds a new promise to be used as a Deferred object.
+     * @param oPromise
+     * @returns {*}
+     */
+    add: function (oPromise) {
+      oPromise.oDeferred = this;
+      this.aPromises.push(oPromise);
+      return this;
     }
   };
 
@@ -1532,7 +1563,7 @@
      * @type {String}
      * @static
      */
-    version: '3.9.11',
+    version: '3.9.12',
 
     /**
      * bus is a singleton instance of the bus to subscribe and publish content in channels.

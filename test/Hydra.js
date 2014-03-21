@@ -2152,4 +2152,101 @@
       });
     });
   });
+  describe('Test Deferred api', function () {
+    it('should check that Deferred is called properly with one promise', function () {
+      var oDeferred = new Hydra.Deferred(),
+          oPromise1 = new Hydra.Promise(),
+          oStubAllPromisesResolved = sinon.stub(),
+          oStubOnePromiseRejected = sinon.stub(),
+          oPromiseResolved = sinon.stub(),
+          oPromiseRejected = sinon.stub();
+
+      oPromise1.then(oPromiseResolved, oPromiseRejected);
+
+      oDeferred.add(oPromise1);
+      oDeferred.then(oStubAllPromisesResolved, oStubOnePromiseRejected);
+      oPromise1.resolve('Promise1ResultValue');
+
+      expect(oPromiseResolved.callCount).toEqual(1);
+      expect(oStubAllPromisesResolved.callCount).toEqual(1);
+    });
+    it('should check that Deferred is called properly with two promises but one is rejected', function () {
+      var oDeferred = new Hydra.Deferred(),
+        oPromise1 = new Hydra.Promise(),
+        oPromise2 = new Hydra.Promise(),
+        oStubAllPromisesResolved = sinon.stub(),
+        oStubOnePromiseRejected = sinon.stub(),
+        oPromiseResolved = sinon.stub(),
+        oPromiseRejected = sinon.stub(),
+        oPromise2Resolved = sinon.stub(),
+        oPromise2Rejected = sinon.stub();
+
+      oPromise1.then(oPromiseResolved, oPromiseRejected);
+      oPromise2.then(oPromise2Resolved, oPromise2Rejected);
+
+      oDeferred.add(oPromise1).add(oPromise2);
+      oDeferred.then(oStubAllPromisesResolved, oStubOnePromiseRejected);
+      oPromise1.resolve('Promise1ResultValue');
+      oPromise2.reject('Promise2ResultValue');
+
+      expect(oPromiseResolved.callCount).toEqual(1);
+      expect(oPromise2Resolved.callCount).toEqual(0);
+      expect(oPromise2Rejected.callCount).toEqual(1);
+      expect(oStubAllPromisesResolved.callCount).toEqual(0);
+      expect(oStubOnePromiseRejected.callCount).toEqual(1);
+    });
+    it('should check that Deferred is called properly with two promises but one is rejected', function () {
+      var oDeferred = new Hydra.Deferred(),
+        oPromise1 = new Hydra.Promise(),
+        oPromise2 = new Hydra.Promise(),
+        oStubAllPromisesResolved = sinon.stub(),
+        oStubOnePromiseRejected = sinon.stub(),
+        oPromiseResolved = sinon.stub(),
+        oPromiseRejected = sinon.stub(),
+        oPromise2Resolved = sinon.stub(),
+        oPromise2Rejected = sinon.stub();
+
+      oPromise1.then(oPromiseResolved, oPromiseRejected);
+      oPromise2.then(oPromise2Resolved, oPromise2Rejected);
+
+      oDeferred.add(oPromise1).add(oPromise2);
+      oDeferred.then(oStubAllPromisesResolved, oStubOnePromiseRejected);
+      oPromise1.resolve('Promise1ResultValue');
+      oPromise2.resolve('Promise2ResultValue');
+
+      expect(oPromiseResolved.callCount).toEqual(1);
+      expect(oPromiseRejected.callCount).toEqual(0);
+      expect(oPromise2Resolved.callCount).toEqual(1);
+      expect(oPromise2Rejected.callCount).toEqual(0);
+      expect(oStubAllPromisesResolved.callCount).toEqual(1);
+      expect(oStubOnePromiseRejected.callCount).toEqual(0);
+    });
+
+    it('should check that Deferred is called properly with two promises but one is rejected', function () {
+      var oDeferred = new Hydra.Deferred(),
+        oPromise1 = new Hydra.Promise(),
+        oPromise2 = new Hydra.Promise(),
+        oStubAllPromisesResolved = sinon.stub(),
+        oStubOnePromiseRejected = sinon.stub(),
+        oPromiseResolved = sinon.stub(),
+        oPromiseRejected = sinon.stub(),
+        oPromise2Resolved = sinon.stub(),
+        oPromise2Rejected = sinon.stub();
+
+      oPromise1.then(oPromiseResolved, oPromiseRejected);
+      oPromise2.then(oPromise2Resolved, oPromise2Rejected);
+
+      oDeferred.add(oPromise1).add(oPromise2);
+      oDeferred.then(oStubAllPromisesResolved, oStubOnePromiseRejected);
+      oPromise1.reject('Promise1ResultValue');
+      oPromise2.reject('Promise2ResultValue');
+
+      expect(oPromiseResolved.callCount).toEqual(0);
+      expect(oPromiseRejected.callCount).toEqual(1);
+      expect(oPromise2Resolved.callCount).toEqual(0);
+      expect(oPromise2Rejected.callCount).toEqual(1);
+      expect(oStubAllPromisesResolved.callCount).toEqual(0);
+      expect(oStubOnePromiseRejected.callCount).toEqual(1);
+    });
+  });
 }());

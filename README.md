@@ -1,7 +1,7 @@
 # Hydra.js
 Hydra.js is a module manager oriented system.
 
-## Updated to version 3.9.11
+## Updated to version 3.9.12
 
 [![Build Status](https://travis-ci.org/HydraJS/HydraJS.png)](https://travis-ci.org/HydraJS/HydraJS)
 [![Dependency Status](https://gemnasium.com/HydraJS/HydraJS.png)](https://gemnasium.com/HydraJS/HydraJS)
@@ -31,11 +31,11 @@ Hydra.js uses a decoupled architecture that:
 * Allows set private variables to be used inside of modules.
 * Can be used in url threaded application as in an Ajax threaded application.
 * You can test your modules with any Unit Testing Framework.
-* Only 4.26KB when [Gzipped](https://github.com/HydraJS/HydraJS/raw/master/versions/hydra.min.js.gz).
+* Only 4.40KB when [Gzipped](https://github.com/HydraJS/HydraJS/raw/master/versions/hydra.min.js.gz).
 
 [Project Web](http://tcorral.github.io/Hydra.js)
 
-[API documentation](http://tcorral.github.io/Hydra.js/apis/Hydra.js_API_v3.9.11/index.html)
+[API documentation](http://tcorral.github.io/Hydra.js/apis/Hydra.js_API_v3.9.12/index.html)
 
 [Examples](http://tcorral.github.io/Hydra.js/#examples)
 
@@ -283,7 +283,7 @@ If you need compatibility with the previous event manager called Action, you can
 
 [Project Web](http://tcorral.github.io/Hydra.js)
 
-[API documentation](http://tcorral.github.io/Hydra.js/apis/Hydra.js_API_v3.9.11/index.html)
+[API documentation](http://tcorral.github.io/Hydra.js/apis/Hydra.js_API_v3.9.12/index.html)
 
 [Examples](http://tcorral.github.io/Hydra.js/#examples)
 

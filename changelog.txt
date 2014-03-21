@@ -1,4 +1,7 @@
 ChangeLog:
+3.9.12
+    - Fix Deferred issues that were not resolved
+    - Fix context when executing __super__.__call__
 3.9.11
 	- Improve build process to update version in source files.
 	- Update namespace mapping when the Namespace is changed using setNamespace method
