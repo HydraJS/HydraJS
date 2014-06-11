@@ -1,4 +1,6 @@
 ChangeLog:
+3.9.13
+	- Add singleton behaviour to the same instances of a module, so that you can not start the same instance more than one time.
 3.9.12
     - Fix Deferred issues that were not resolved
     - Fix context when executing __super__.__call__

@@ -453,8 +453,8 @@
   function startSingleModule(oWrapper, sModuleId, sIdInstance, oData, bSingle) {
     var oModule;
     oModule = oModules[sModuleId];
-    if (bSingle && oWrapper.isModuleStarted(sModuleId)) {
-      oWrapper.stop(sModuleId);
+    if ( (bSingle && oWrapper.isModuleStarted(sModuleId)) || oWrapper.isModuleStarted(sModuleId, sIdInstance)) {
+      oWrapper.stop(sModuleId, sIdInstance);
     }
     if (!isTypeOf(oModule, sNotDefined)) {
       createInstance(sModuleId, undefined, function (oInstance) {

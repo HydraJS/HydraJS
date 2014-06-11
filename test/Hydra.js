@@ -353,7 +353,7 @@
       });
     });
 
-    describe('Decorate a module', function () {
+    xdescribe('Decorate a module', function () {
       it('should call the ErrorHandler.log if the base module has not been registered and return null', function () {
         var sModuleId = 'test'
           , oPromise
@@ -382,7 +382,7 @@
           , fpOnDestroyBaseModule = sinon.stub()
           , fpInitDecoratedModule = sinon.stub()
           , fpOnDestroyDecoratedModule = sinon.stub();
-        ;
+
         runs(function () {
           var sModuleId = 'test';
           Hydra.module.register(sModuleId, function () {
@@ -2247,6 +2247,55 @@
       expect(oPromise2Rejected.callCount).toEqual(1);
       expect(oStubAllPromisesResolved.callCount).toEqual(0);
       expect(oStubOnePromiseRejected.callCount).toEqual(1);
+    });
+  });
+
+  describe('The module should not call more than one time to the init if the same instance exist', function () {
+    var stubInit;
+    beforeEach(function () {
+      Hydra.bus.reset();
+      Hydra.module.reset();
+      stubInit = sinon.stub();
+      Hydra.module.register('base-module', function () {
+        return {
+          init: stubInit
+        };
+      });
+    });
+
+    it('should check that the first time we start a module without an instance name it calls the init method', function (){
+      Hydra.setDebug(true);
+      Hydra.module.start('base-module');
+
+      expect(stubInit.callCount).toEqual(1);
+      Hydra.setDebug(false);
+    });
+    it('should check that the second time we start a module without an instance name then the init method is called two times', function () {
+      Hydra.setDebug(true);
+      Hydra.module.start('base-module');
+      Hydra.module.start('base-module');
+
+      expect(stubInit.callCount).toEqual(2);
+      Hydra.setDebug(false);
+    });
+    it('should check that the second time we start a module without an instance name then the init method is called two times', function () {
+      Hydra.setDebug(true);
+      Hydra.module.start('base-module');
+      Hydra.module.start('base-module', 'hi');
+
+      expect(stubInit.callCount).toEqual(2);
+      Hydra.setDebug(false);
+    });
+    it('should check that the second time we start a module without an instance name, but with the same instance name, then the init method is called two times but Hydra.stop is called one time', function () {
+      Hydra.setDebug(true);
+      sinon.stub(Hydra.module, 'stop');
+      Hydra.module.start('base-module', 'hi');
+      Hydra.module.start('base-module', 'hi');
+
+      expect(stubInit.callCount).toEqual(2);
+      expect(Hydra.module.stop.callCount).toEqual(1);
+      Hydra.module.stop.restore();
+      Hydra.setDebug(false);
     });
   });
 }());
