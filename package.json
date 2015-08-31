@@ -80,7 +80,7 @@
     "karma-script-launcher": "~0.1.0",
     "swig": "~1.2.2",
     "sinon": "~1.7.3",
-    "uglify-js": "2.4.6",
+    "uglify-js": "2.4.24",
     "zlib": "1.0.5",
     "async": "~0.2.10"
   },
