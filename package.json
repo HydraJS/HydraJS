@@ -1,6 +1,6 @@
 {
   "name": "hydra.js",
-  "version": "3.9.13",
+  "version": "3.10.0",
   "description": "Framework that gives you the tools to write your application using modules or widgets and make easy to work with them.",
   "homepage": "http://tcorral.github.com/Hydra.js/",
   "author": "Tomas Corral",
@@ -83,5 +83,12 @@
     "uglify-js": "2.4.24",
     "async": "~0.2.10"
   },
-  "github": "https://github.com/HydraJS/HydraJS"
+  "github": "https://github.com/HydraJS/HydraJS",
+  "jspm": {
+    "devDependencies": {
+      "babel": "npm:babel-core@^5.8.24",
+      "babel-runtime": "npm:babel-runtime@^5.8.24",
+      "core-js": "npm:core-js@^1.1.4"
+    }
+  }
 }
