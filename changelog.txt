@@ -1,4 +1,6 @@
 ChangeLog:
+3.10.0
+    - Rewrite Hydra.js using ES6.
 3.9.13
 	- Add singleton behaviour to the same instances of a module, so that you can not start the same instance more than one time.
 3.9.12
