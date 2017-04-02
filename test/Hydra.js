@@ -1,9 +1,8 @@
-(function () {
+(function() {
   'use strict';
   var oErrorHandler = null
-    , FakeClass = function () {
-    }
-    , sTimeout = setTimeout;
+    , FakeClass = function() {
+  };
 
   function getLengthObject(obj) {
     var sKey
@@ -20,40 +19,40 @@
 
   Hydra.setTestFramework(true);
 
-  describe('Hydra.js', function () {
+  describe('Hydra.js', function() {
 
-    beforeEach(function () {
+    beforeEach(function() {
       Hydra.module.reset();
     });
 
-    afterEach(function () {
+    afterEach(function() {
       Hydra.module.reset();
     });
-    describe('Fix extension module bug on lazy pattern single module', function () {
-      beforeEach(function () {
-        Hydra.module.register("single-module", function () {
+    describe('Fix extension module bug on lazy pattern single module', function() {
+      beforeEach(function() {
+        Hydra.module.register("single-module", function() {
           return {
             isFirstExecution: null,
-            init: function () {
+            init: function() {
               var self = this;
               this.isFirstExecution = true;
-              this.init = function () {
+              this.init = function() {
                 self.isFirstExecution = false;
               };
             }
           };
         });
       });
-      it('should return true if module is executed once', function () {
-        Hydra.module.test('single-module', function (oModule) {
+      it('should return true if module is executed once', function() {
+        Hydra.module.test('single-module', function(oModule) {
           oModule.init();
           expect(oModule.isFirstExecution).toEqual(true);
         });
       });
 
-      it('should return false if module is executed twice', function () {
+      it('should return false if module is executed twice', function() {
 
-        Hydra.module.test('single-module', function (oModule) {
+        Hydra.module.test('single-module', function(oModule) {
           oModule.init();
           oModule.init();
           expect(oModule.isFirstExecution).toEqual(false);
@@ -64,43 +63,43 @@
     });
 
 
-    describe('Fix extension module bug on lazy pattern extended module', function () {
-      beforeEach(function () {
-        Hydra.module.register("single-module", function () {
+    describe('Fix extension module bug on lazy pattern extended module', function() {
+      beforeEach(function() {
+        Hydra.module.register("single-module", function() {
           return {
             isFirstExecution: null,
-            init: function () {
+            init: function() {
               var self = this;
               this.isFirstExecution = true;
-              this.init = function () {
+              this.init = function() {
                 self.isFirstExecution = false;
               };
             }
           };
         });
-        Hydra.module.extend("single-module", "extended-module", function () {
+        Hydra.module.extend("single-module", "extended-module", function() {
           return {
             isFirstExecution: null,
-            init: function () {
+            init: function() {
               var self = this;
               this.isFirstExecution = true;
-              this.init = function () {
+              this.init = function() {
                 self.isFirstExecution = false;
               };
             }
           };
         });
       });
-      it('should return true if module is executed once', function () {
-        Hydra.module.test('extended-module', function (oModule) {
+      it('should return true if module is executed once', function() {
+        Hydra.module.test('extended-module', function(oModule) {
           oModule.init();
           expect(oModule.isFirstExecution).toEqual(true);
         });
 
       });
 
-      it('should return false if module is executed twice', function () {
-        Hydra.module.test('extended-module', function (oModule) {
+      it('should return false if module is executed twice', function() {
+        Hydra.module.test('extended-module', function(oModule) {
           oModule.init();
           oModule.init();
           expect(oModule.isFirstExecution).toEqual(false);
@@ -110,23 +109,23 @@
     });
 
 
-    describe('On request Hydra', function () {
+    describe('On request Hydra', function() {
 
-      it('should return an object', function () {
+      it('should return an object', function() {
         expect(Hydra).not.toBeUndefined();
       });
 
-      it('should contain a property called errorHandler', function () {
+      it('should contain a property called errorHandler', function() {
         expect(Hydra.errorHandler).not.toBeUndefined();
         expect(typeof Hydra.errorHandler === 'function').toBeTruthy();
       });
 
-      it('should contain a property called setErrorHandler', function () {
+      it('should contain a property called setErrorHandler', function() {
         expect(Hydra.setErrorHandler).not.toBeUndefined();
         expect(typeof Hydra.setErrorHandler === 'function').toBeTruthy();
       });
 
-      it('should contain a property called module', function () {
+      it('should contain a property called module', function() {
         expect(Hydra.module).not.toBeUndefined();
         expect(typeof Hydra.module === 'object').toBeTruthy();
         expect(Hydra.module.type).toEqual("Module");
@@ -135,9 +134,9 @@
     });
 
 
-    describe('setErrorHandler', function () {
+    describe('setErrorHandler', function() {
 
-      it('should change the ErrorHandler class to a Fake Class', function () {
+      it('should change the ErrorHandler class to a Fake Class', function() {
         var oResult;
 
         oErrorHandler = Hydra.errorHandler();
@@ -149,7 +148,7 @@
         Hydra.setErrorHandler(oErrorHandler);
       });
 
-      it('should return an instance of Fake Class', function () {
+      it('should return an instance of Fake Class', function() {
         var oInstance
           , oClass;
 
@@ -167,36 +166,36 @@
     });
 
 
-    describe('Register a module', function () {
+    describe('Register a module', function() {
 
-      it('should throw an error if we try to create a module without register if the ErrorHandler Class', function () {
+      it('should throw an error if we try to create a module without register if the ErrorHandler Class', function() {
         var sModuleId = 'test';
 
-        expect(function () {
-          Hydra.module.test(sModuleId, function () {
+        expect(function() {
+          Hydra.module.test(sModuleId, function() {
             Hydra.module.remove(sModuleId);
           });
         }).toThrow();
       });
 
-      it('should return a module if we create a module registering it', function () {
+      it('should return a module if we create a module registering it', function() {
         var sModuleId = 'test'
-          , fpModuleCreator = function () {
-            return {
-              init: function () {
+          , fpModuleCreator = function() {
+          return {
+            init: function() {
 
-              },
-              handleAction: function () {
+            },
+            handleAction: function() {
 
-              },
-              destroy: function () {
+            },
+            destroy: function() {
 
-              }
             }
-          };
+          }
+        };
 
         Hydra.module.register(sModuleId, fpModuleCreator);
-        Hydra.module.test(sModuleId, function (oModule) {
+        Hydra.module.test(sModuleId, function(oModule) {
           expect(typeof oModule === 'object').toBeTruthy();
           Hydra.module.remove(sModuleId);
         });
@@ -207,21 +206,21 @@
     });
 
 
-    describe('Remove a module', function () {
-      beforeEach(function () {
+    describe('Remove a module', function() {
+      beforeEach(function() {
         Hydra.module.reset();
       });
 
-      afterEach(function () {
+      afterEach(function() {
         Hydra.module.reset();
       });
 
-      it('should not remove the module test if we try to remove the module test2', function () {
+      it('should not remove the module test if we try to remove the module test2', function() {
         var sModuleId = 'test'
           , sModuleDontExist = 'test2'
           , sContainerId = 'test';
 
-        Hydra.module.register('test', function () {
+        Hydra.module.register('test', function() {
           return {}
         });
         expect(Object.keys(Hydra.getCopyModules()).length).toEqual(1);
@@ -231,11 +230,11 @@
         expect(Object.keys(Hydra.getCopyModules()).length).toEqual(1);
       });
 
-      it('should remove the module test if we remove it', function () {
+      it('should remove the module test if we remove it', function() {
         var sModuleId = 'test'
           , sContainerId = 'test';
 
-        Hydra.module.register(sModuleId, function () {
+        Hydra.module.register(sModuleId, function() {
           return {};
         });
 
@@ -249,39 +248,39 @@
     });
 
 
-    describe('Start module/s', function () {
+    describe('Start module/s', function() {
 
-      it('should call the init method of the module if the module is registered before start', function () {
+      it('should call the init method of the module if the module is registered before start', function() {
         var sModuleId = 'test'
           , sModuleId2 = 'test2'
           , fpInitStub = sinon.stub()
           , fpInitStub2 = sinon.stub()
-          , fpModuleCreator = function () {
-            return {
-              init: function () {
-                fpInitStub();
-              },
-              handleAction: function () {
+          , fpModuleCreator = function() {
+          return {
+            init: function() {
+              fpInitStub();
+            },
+            handleAction: function() {
 
-              },
-              destroy: function () {
+            },
+            destroy: function() {
 
-              }
             }
           }
-          , fpModuleCreator2 = function () {
-            return {
-              init: function () {
-                fpInitStub2();
-              },
-              handleAction: function () {
+        }
+          , fpModuleCreator2 = function() {
+          return {
+            init: function() {
+              fpInitStub2();
+            },
+            handleAction: function() {
 
-              },
-              destroy: function () {
+            },
+            destroy: function() {
 
-              }
             }
-          };
+          }
+        };
         Hydra.module.register(sModuleId, fpModuleCreator);
         Hydra.module.register(sModuleId2, fpModuleCreator2);
 
@@ -292,37 +291,37 @@
         Hydra.module.remove(sModuleId);
       });
 
-      it('should check that all the init methods in the modules are called when using multi-module start', function () {
+      it('should check that all the init methods in the modules are called when using multi-module start', function() {
         var sModuleId = 'test'
           , sModuleId2 = 'test2'
           , fpInitStub = sinon.stub()
           , fpInitStub2 = sinon.stub()
-          , fpModuleCreator = function () {
-            return {
-              init: function () {
-                fpInitStub();
-              },
-              handleAction: function () {
+          , fpModuleCreator = function() {
+          return {
+            init: function() {
+              fpInitStub();
+            },
+            handleAction: function() {
 
-              },
-              destroy: function () {
+            },
+            destroy: function() {
 
-              }
             }
           }
-          , fpModuleCreator2 = function () {
-            return {
-              init: function () {
-                fpInitStub2();
-              },
-              handleAction: function () {
+        }
+          , fpModuleCreator2 = function() {
+          return {
+            init: function() {
+              fpInitStub2();
+            },
+            handleAction: function() {
 
-              },
-              destroy: function () {
+            },
+            destroy: function() {
 
-              }
             }
-          };
+          }
+        };
         Hydra.module.register(sModuleId, fpModuleCreator);
         Hydra.module.register(sModuleId2, fpModuleCreator2);
 
@@ -336,11 +335,11 @@
 
     });
 
-    describe('Reset modules', function () {
+    describe('Reset modules', function() {
 
-      it('should check that there are no modules after executing reset', function () {
+      it('should check that there are no modules after executing reset', function() {
         var oModules;
-        Hydra.module.register('test', function () {
+        Hydra.module.register('test', function() {
           return {};
         });
         oModules = Hydra.getCopyModules();
@@ -353,104 +352,25 @@
       });
     });
 
-    xdescribe('Decorate a module', function () {
-      it('should call the ErrorHandler.log if the base module has not been registered and return null', function () {
-        var sModuleId = 'test'
-          , oPromise
-          , sModuleDecorator = 'test-decorator';
+    describe('Start all modules', function() {
 
-        sinon.stub(Hydra.errorHandler(), 'log');
-
-        oPromise = Hydra.module.decorate(sModuleId, sModuleDecorator, function () {
-          return {
-            init: function () {
-            },
-            destroy: function () {
-            }
-          };
-        });
-        oPromise.then(function (oModule) {
-          expect(Hydra.errorHandler().log.calledOnce).toBeTruthy();
-          expect(oModule).toBeNull();
-          Hydra.errorHandler().log.restore();
-        });
-      });
-
-      it('should return a FakeModule instance if the base module has been registered', function () {
-        var flag = false, sModuleDecorator = 'test-decorator', oPromise, oModule
-          , fpInitBaseModule = sinon.stub()
-          , fpOnDestroyBaseModule = sinon.stub()
-          , fpInitDecoratedModule = sinon.stub()
-          , fpOnDestroyDecoratedModule = sinon.stub();
-
-        runs(function () {
-          var sModuleId = 'test';
-          Hydra.module.register(sModuleId, function () {
-            return {
-              init: fpInitBaseModule,
-              onDestroy: fpOnDestroyBaseModule
-            };
-          });
-          oPromise = Hydra.module.decorate(sModuleId, sModuleDecorator, [], function (oModule) {
-            return {
-              init: function () {
-                fpInitDecoratedModule();
-                oModule.init();
-              },
-              onDestroy: function () {
-                fpOnDestroyDecoratedModule();
-                oModule.onDestroy();
-              }
-            };
-          });
-        });
-
-        waitsFor(function () {
-          oPromise.then(function (oMod) {
-            oModule = oMod;
-            flag = true;
-          });
-          return flag;
-        }, 'It should resolve the modules', 1000);
-
-        runs(function () {
-          Hydra.module.start(sModuleDecorator);
-
-          expect(fpInitBaseModule.calledOnce).toBeTruthy();
-          expect(fpInitDecoratedModule.calledOnce).toBeTruthy();
-
-          Hydra.module.stop(sModuleDecorator);
-
-          expect(fpOnDestroyBaseModule.calledOnce).toBeTruthy();
-          expect(fpOnDestroyDecoratedModule.calledOnce).toBeTruthy();
-
-          expect(typeof oModule === 'object').toBeTruthy();
-          expect(typeof oModule.start !== 'undefined').toBeTruthy();
-          expect(typeof oModule.stop !== 'undefined').toBeTruthy();
-          expect(typeof oModule.extend !== 'undefined').toBeTruthy();
-        });
-      });
-    });
-
-    describe('Start all modules', function () {
-
-      it('should call the init method of the two registered modules', function () {
+      it('should call the init method of the two registered modules', function() {
         var sModuleId = 'test'
           , sModuleId2 = 'test2'
           , fpInitStub = sinon.stub()
-          , fpModuleCreator = function () {
-            return {
-              init: function () {
-                fpInitStub();
-              },
-              handleAction: function () {
+          , fpModuleCreator = function() {
+          return {
+            init: function() {
+              fpInitStub();
+            },
+            handleAction: function() {
 
-              },
-              destroy: function () {
+            },
+            destroy: function() {
 
-              }
             }
-          };
+          }
+        };
         Hydra.module.register(sModuleId, fpModuleCreator);
         Hydra.module.register(sModuleId2, fpModuleCreator);
 
@@ -464,84 +384,65 @@
     });
 
 
-    describe('Stop module/s', function () {
+    describe('Stop module/s', function() {
 
-      it('should not call the destroy method if the module is registered but not started', function () {
+      it('should not call the destroy method if the module is registered but not started', function(done) {
 
         var oMod
           , sModuleId = 'test'
           , sContainerId = 'test'
-          , fpDestroyStub = sinon.stub()
-          , flag = false;
+          , fpDestroyStub = sinon.stub();
 
-        runs(function () {
-          Hydra.module.register(sModuleId, function () {
-            return {
-              init: function () {
-              },
-              onDestroy: fpDestroyStub
-            }
-          });
+        Hydra.module.register(sModuleId, function() {
+          return {
+            init: function() {
+            },
+            onDestroy: fpDestroyStub
+          }
         });
 
-        waits(function () {
-          Hydra.module.getModule(sModuleId, sContainerId, function (oModule) {
-            oMod = oModule;
-            flag = true;
-          });
-          return flag;
-        }, 'It should resolve the module', 1000);
-
-        runs(function () {
+        Hydra.module.getModule(sModuleId, sContainerId, function(oModule) {
+          oMod = oModule;
           Hydra.module.remove(sModuleId, sContainerId);
-
           Hydra.module.stop(sModuleId, sContainerId);
-
           expect(fpDestroyStub.callCount).toEqual(0);
-
           Hydra.module.remove(sModuleId, sContainerId);
+          done();
         });
+
       });
 
-      it('should call the destroy method one time if the module is registered and started', function () {
+      it('should call the destroy method one time if the module is registered and started', function(done) {
         var oMod
           , sModuleId = 'test'
           , sContainerId = 'test'
-          , fpDestroyStub = sinon.stub()
-          , flag = false;
+          , fpDestroyStub = sinon.stub();
 
-        runs(function () {
-          Hydra.module.register(sModuleId, function () {
-            return {
-              init: function () {
-              },
-              onDestroy: fpDestroyStub
-            }
-          });
+        Hydra.module.register(sModuleId, function() {
+          return {
+            init: function() {
+            },
+            onDestroy: fpDestroyStub
+          }
         });
 
-        waitsFor(function () {
-          Hydra.module.getModule(sModuleId, sContainerId, function (oModule) {
-            oMod = oModule;
-            flag = true;
-          });
-          return flag;
-        }, 'It should resolve the module', 1000);
-
-        runs(function () {
+        Hydra.module.getModule(sModuleId, sContainerId, function(oModule) {
+          oMod = oModule;
           Hydra.module.stop(sModuleId, sContainerId);
 
           expect(fpDestroyStub.calledOnce).toBeTruthy();
 
           Hydra.module.remove(sModuleId, sContainerId);
+          done();
         });
+
       });
     });
 
 
-    describe('Stop all modules', function () {
+    describe('Stop all modules', function() {
 
-      it('should call the destroy method of the two registered modules', function () {
+      it('should call the destroy method of the two registered modules', function(done) {
         var oMod1
           , oMod2
           , sModuleId = 'test'
@@ -549,80 +450,70 @@
           , sContainerId_1 = 'test'
           , sContainerId_2 = 'test2'
           , fpDestroyStub1 = sinon.stub()
-          , fpDestroyStub2 = sinon.stub()
-          , flag = false;
+          , fpDestroyStub2 = sinon.stub();
 
-        runs(function () {
-          Hydra.module.register(sModuleId, function () {
-            return {
-              init: function () {
-              },
-              onDestroy: fpDestroyStub1
-            }
-          });
-          Hydra.module.register(sModuleId2, function () {
-            return {
-              init: function () {
-              },
-              onDestroy: fpDestroyStub2
-            }
-          });
+        Hydra.module.register(sModuleId, function() {
+          return {
+            init: function() {
+            },
+            onDestroy: fpDestroyStub1
+          }
+        });
+        Hydra.module.register(sModuleId2, function() {
+          return {
+            init: function() {
+            },
+            onDestroy: fpDestroyStub2
+          }
         });
 
-        waitsFor(function () {
-          Hydra.module.getModule(sModuleId, sContainerId_1, function (oModule1) {
-            oMod1 = oModule1;
-            Hydra.module.getModule(sModuleId2, sContainerId_2, function (oModule2) {
-              oMod2 = oModule2;
-              flag = true;
-            });
+        Hydra.module.getModule(sModuleId, sContainerId_1, function(oModule1) {
+          oMod1 = oModule1;
+          Hydra.module.getModule(sModuleId2, sContainerId_2, function(oModule2) {
+            oMod2 = oModule2;
+            Hydra.module.stopAll();
+            expect(fpDestroyStub1.calledOnce).toBeTruthy();
+            expect(fpDestroyStub2.calledOnce).toBeTruthy();
+            Hydra.module.remove(sModuleId);
+            done();
           });
-          return flag;
-        }, 'It should resolve the modules', 1000);
-
-        runs(function () {
-          Hydra.module.stopAll();
-          expect(fpDestroyStub1.calledOnce).toBeTruthy();
-          expect(fpDestroyStub2.calledOnce).toBeTruthy();
-          Hydra.module.remove(sModuleId);
         });
-
       });
     });
 
 
-    describe('Simple Extension of modules', function () {
+    describe('Simple Extension of modules', function() {
 
-      it('should not call the merge method until is started', function () {
+      it('should not call the merge method until is started', function() {
         var sModuleId = 'test'
           , fpInitStub = sinon.stub()
           , fpDestroyStub = sinon.stub()
-          , fpModuleCreator = function () {
-            return {
-              init: function () {
+          , fpModuleCreator = function() {
+          return {
+            init: function() {
 
-              },
-              handleAction: function () {
+            },
+            handleAction: function() {
 
-              },
-              destroy: function () {
-                fpDestroyStub();
-              }
+            },
+            destroy: function() {
+              fpDestroyStub();
             }
           }
-          , fpModuleExtendedCreator = function () {
-            return {
-              init: function () {
-                fpInitStub();
-              },
-              handleAction: function () {
+        }
+          , fpModuleExtendedCreator = function() {
+          return {
+            init: function() {
+              fpInitStub();
+            },
+            handleAction: function() {
 
-              },
-              destroy: function () {
+            },
+            destroy: function() {
 
-              }
             }
-          };
+          }
+        };
 
         Hydra.module.register(sModuleId, fpModuleCreator);
 
@@ -631,36 +522,36 @@
         Hydra.module.remove(sModuleId);
       });
 
-      it('should call the init method of the final extended module', function () {
+      it('should call the init method of the final extended module', function() {
         var sModuleId = 'test'
           , fpInitStub = sinon.stub()
           , fpDestroyStub = sinon.stub()
-          , fpModuleCreator = function () {
-            return {
-              init: function () {
+          , fpModuleCreator = function() {
+          return {
+            init: function() {
 
-              },
-              handleAction: function () {
+            },
+            handleAction: function() {
 
-              },
-              destroy: function () {
-                fpDestroyStub();
-              }
+            },
+            destroy: function() {
+              fpDestroyStub();
             }
           }
-          , fpModuleExtendedCreator = function () {
-            return {
-              init: function () {
-                fpInitStub();
-              },
-              handleAction: function () {
+        }
+          , fpModuleExtendedCreator = function() {
+          return {
+            init: function() {
+              fpInitStub();
+            },
+            handleAction: function() {
 
-              },
-              destroy: function () {
+            },
+            destroy: function() {
 
-              }
             }
-          };
+          }
+        };
 
         Hydra.module.register(sModuleId, fpModuleCreator);
 
@@ -673,36 +564,36 @@
         Hydra.module.remove(sModuleId);
       });
 
-      it('should call the init method of the final extended module', function () {
+      it('should call the init method of the final extended module', function() {
         var sModuleId = 'test'
           , fpInitStub = sinon.stub()
           , fpDestroyStub = sinon.stub()
-          , fpModuleCreator = function () {
-            return {
-              init: function () {
+          , fpModuleCreator = function() {
+          return {
+            init: function() {
 
-              },
-              handleAction: function () {
+            },
+            handleAction: function() {
 
-              },
-              destroy: function () {
-                fpDestroyStub();
-              }
+            },
+            destroy: function() {
+              fpDestroyStub();
             }
           }
-          , fpModuleExtendedCreator = function () {
-            return {
-              init: function () {
-                fpInitStub();
-              },
-              handleAction: function () {
+        }
+          , fpModuleExtendedCreator = function() {
+          return {
+            init: function() {
+              fpInitStub();
+            },
+            handleAction: function() {
 
-              },
-              destroy: function () {
+            },
+            destroy: function() {
 
-              }
             }
-          };
+          }
+        };
 
         Hydra.module.register(sModuleId, fpModuleCreator);
 
@@ -718,95 +609,88 @@
     });
 
 
-    describe('Complex extend', function () {
+    describe('Complex extend', function() {
 
-      it('should call the init method of the final extended module', function () {
-        var flag = false
-          , sModuleId = 'test'
+      it('should call the init method of the final extended module', function(done) {
+        var sModuleId = 'test'
           , sExtendedModuleId = 'test2'
           , fpInitStub = sinon.stub()
           , oPromise
           , fpDestroyStub = sinon.stub()
-          , fpModuleCreator = function () {
-            return {
-              init: function () {
+          , fpModuleCreator = function() {
+          return {
+            init: function() {
 
-              },
-              handleAction: function () {
+            },
+            handleAction: function() {
 
-              },
-              destroy: function () {
-                fpDestroyStub();
-              }
+            },
+            destroy: function() {
+              fpDestroyStub();
             }
           }
-          , fpModuleExtendedCreator = function () {
-            return {
-              init: function () {
-                fpInitStub();
-              },
-              handleAction: function () {
+        }
+          , fpModuleExtendedCreator = function() {
+          return {
+            init: function() {
+              fpInitStub();
+            },
+            handleAction: function() {
 
-              },
-              destroy: function () {
+            },
+            destroy: function() {
 
-              }
             }
-          };
+          }
+        };
 
-        runs(function () {
-          Hydra.module.register(sModuleId, fpModuleCreator);
+        Hydra.module.register(sModuleId, fpModuleCreator);
 
-          oPromise = Hydra.module.extend(sModuleId, sExtendedModuleId, fpModuleExtendedCreator);
-        });
-
-        waitsFor(function () {
-          oPromise.then(function () {
+        oPromise = Hydra.module.extend(sModuleId, sExtendedModuleId, fpModuleExtendedCreator);
+        oPromise
+          .then(function() {
             Hydra.module.start(sExtendedModuleId);
-            flag = true;
+          })
+          .then(function() {
+            expect(fpInitStub.callCount).toEqual(1);
+
+            Hydra.module.remove(sModuleId);
+            Hydra.module.remove(sExtendedModuleId);
+            done();
           });
-          return flag;
-        }, 'It should resolve the modules', 1000);
-
-        runs(function () {
-          expect(fpInitStub.callCount).toEqual(1);
-
-          Hydra.module.remove(sModuleId);
-          Hydra.module.remove(sExtendedModuleId);
-        });
       });
 
-      it('should call the destroy method of the final extended module', function () {
+      it('should call the destroy method of the final extended module', function() {
         var sModuleId = 'test'
           , sExtendedModuleId = 'test2'
           , fpInitStub = sinon.stub()
           , fpDestroyStub = sinon.stub()
-          , fpModuleCreator = function () {
-            return {
-              init: function () {
+          , fpModuleCreator = function() {
+          return {
+            init: function() {
 
-              },
-              handleAction: function () {
+            },
+            handleAction: function() {
 
-              },
-              destroy: function () {
-                fpDestroyStub();
-              }
+            },
+            destroy: function() {
+              fpDestroyStub();
             }
           }
-          , fpModuleExtendedCreator = function () {
-            return {
-              init: function () {
-                fpInitStub();
-              },
-              handleAction: function () {
+        }
+          , fpModuleExtendedCreator = function() {
+          return {
+            init: function() {
+              fpInitStub();
+            },
+            handleAction: function() {
 
-              },
-              destroy: function () {
+            },
+            destroy: function() {
 
-              }
             }
-          };
+          }
+        };
 
         Hydra.module.register(sModuleId, fpModuleCreator);
 
@@ -823,20 +707,20 @@
     });
 
 
-    describe('Set global vars', function () {
+    describe('Set global vars', function() {
 
-      it('should check that setVars method exist in Module', function () {
+      it('should check that setVars method exist in Module', function() {
         var oVars = null
           , oCallbacks = {
-            fpInit: function (oData) {
-              oVars = oData;
-            }
-          };
+          fpInit: function(oData) {
+            oVars = oData;
+          }
+        };
 
-        Hydra.module.register("test-module", function () {
+        Hydra.module.register("test-module", function() {
           return {
             init: oCallbacks.fpInit,
-            destroy: function () {
+            destroy: function() {
 
             }
           };
@@ -851,18 +735,18 @@
         oCallbacks.fpInit = null;
       });
 
-      it('should check that all the vars set in setVars are passed as an object when the module is started', function () {
+      it('should check that all the vars set in setVars are passed as an object when the module is started', function() {
         var oVars = null
           , oCallbacks = {
-            fpInit: function (oData) {
-              oVars = oData;
-            }
-          };
+          fpInit: function(oData) {
+            oVars = oData;
+          }
+        };
 
-        Hydra.module.register("test-module", function () {
+        Hydra.module.register("test-module", function() {
           return {
             init: oCallbacks.fpInit,
-            destroy: function () {
+            destroy: function() {
 
             }
           };
@@ -886,26 +770,26 @@
         oCallbacks.fpInit = null;
       });
 
-      it('should check that if we pass a param when starting the module will move the object of vars to the last position in arguments', function () {
+      it('should check that if we pass a param when starting the module will move the object of vars to the last position in arguments', function() {
         var oVars = null
           , oCallbacks = {
-            fpInit: function (oData) {
-              oVars = oData;
-            }
+          fpInit: function(oData) {
+            oVars = oData;
           }
+        }
           , oVars1 = {
-            'test': 'test',
-            'test1': 'test1'
-          }
+          'test': 'test',
+          'test1': 'test1'
+        }
           , oData = {
-            data: 2
-          }
+          data: 2
+        }
           , oCall;
 
-        Hydra.module.register("test-module", function () {
+        Hydra.module.register("test-module", function() {
           return {
             init: oCallbacks.fpInit,
-            destroy: function () {
+            destroy: function() {
 
             }
           };
@@ -932,9 +816,9 @@
     });
 
 
-    describe('Get global vars', function () {
+    describe('Get global vars', function() {
 
-      it('should check that getVars method exist in Module', function () {
+      it('should check that getVars method exist in Module', function() {
         var oVars = {
           'test': 'test',
           'test1': 'test1'
@@ -948,7 +832,7 @@
         oVars = null;
       });
 
-      it('should check that getVars return a copy of all the vars set using setVars', function () {
+      it('should check that getVars return a copy of all the vars set using setVars', function() {
         var oVars = {
             'test': 'test',
             'test1': 'test1'
@@ -969,17 +853,17 @@
     });
 
 
-    describe('Global Extend for compatibility with require', function () {
+    describe('Global Extend for compatibility with require', function() {
 
-      it('should check that extend method exist', function () {
+      it('should check that extend method exist', function() {
         expect(typeof Hydra.extend === 'function').toBeTruthy();
       });
 
-      it('should check that extend method must receive two params', function () {
+      it('should check that extend method must receive two params', function() {
         expect(Hydra.extend.length).toEqual(2);
       });
 
-      it('should check when executing extend method the new object will be part of Hydra', function () {
+      it('should check when executing extend method the new object will be part of Hydra', function() {
         var oTest = {
           test: sinon.stub()
         };
@@ -992,17 +876,17 @@
     });
 
 
-    describe('Avoid conflict with third party namespaces', function () {
+    describe('Avoid conflict with third party namespaces', function() {
 
-      it('should check that noConflict method exist ', function () {
+      it('should check that noConflict method exist ', function() {
         expect(typeof Hydra.noConflict === 'function').toBeTruthy();
       });
 
-      it('should check that noConflict method must receive three params ', function () {
+      it('should check that noConflict method must receive three params ', function() {
         expect(Hydra.noConflict.length).toEqual(3);
       });
 
-      it('should check when executing noConflict a part of Hydra will be callable with other name and in other context ', function () {
+      it('should check when executing noConflict a part of Hydra will be callable with other name and in other context ', function() {
         var bDone;
 
         bDone = Hydra.noConflict('module', this, 'Core');
@@ -1015,46 +899,46 @@
     });
 
 
-    describe('Bus Constructor', function () {
+    describe('Bus Constructor', function() {
 
-      beforeEach(function () {
+      beforeEach(function() {
         Hydra.bus.reset();
       });
 
-      it('should check that Hydra.bus is not undefined', function () {
+      it('should check that Hydra.bus is not undefined', function() {
         expect(Hydra.bus).not.toBeUndefined();
       });
 
-      it('should check that Hydra.bus has method subscribers', function () {
+      it('should check that Hydra.bus has method subscribers', function() {
         expect(typeof Hydra.bus.subscribers === 'function').toBeTruthy();
       });
 
-      it('should check that Hydra.bus has method subscribe', function () {
+      it('should check that Hydra.bus has method subscribe', function() {
         expect(typeof Hydra.bus.subscribe === 'function').toBeTruthy();
       });
 
-      it('should check that Hydra.bus has method unsubscribe', function () {
+      it('should check that Hydra.bus has method unsubscribe', function() {
         expect(typeof Hydra.bus.unsubscribe === 'function').toBeTruthy();
       });
 
-      it('should check that Hydra.bus has method publish', function () {
+      it('should check that Hydra.bus has method publish', function() {
         expect(typeof Hydra.bus.publish === 'function').toBeTruthy();
       });
 
     });
 
 
-    describe('Subscribe to an event', function () {
+    describe('Subscribe to an event', function() {
 
-      beforeEach(function () {
+      beforeEach(function() {
         Hydra.bus.reset();
       });
 
-      afterEach(function () {
+      afterEach(function() {
         Hydra.bus.reset();
       });
 
-      it('should check that subscribeTo adds a subscriber', function () {
+      it('should check that subscribeTo adds a subscriber', function() {
         var oSubscriber = {};
 
         expect(Hydra.bus.subscribers('channel', 'item:action').length).toEqual(0);
@@ -1068,17 +952,17 @@
     });
 
 
-    describe('Unsubscribe from an event', function () {
+    describe('Unsubscribe from an event', function() {
 
-      beforeEach(function () {
+      beforeEach(function() {
         Hydra.bus.reset();
       });
 
-      afterEach(function () {
+      afterEach(function() {
         Hydra.bus.reset();
       });
 
-      it('should', function () {
+      it('should', function() {
         var oSubscriber = {};
 
         Hydra.bus.subscribeTo('channel', 'item:action', sinon.stub(), oSubscriber);
@@ -1095,13 +979,13 @@
     });
 
 
-    describe('Get Subscribers', function () {
+    describe('Get Subscribers', function() {
 
-      beforeEach(function () {
+      beforeEach(function() {
         Hydra.bus.reset();
       });
 
-      it('should check that must return an empty array if there are no channel', function () {
+      it('should check that must return an empty array if there are no channel', function() {
         var oResult = Hydra.bus.subscribers('channel', 'item:actionChannel');
 
         expect(Object.prototype.toString.call(oResult) === '[object Array]').toBeTruthy();
@@ -1109,16 +993,16 @@
 
       });
 
-      it('should check that must return an array with an element if a subscriber is registered', function () {
+      it('should check that must return an array with an element if a subscriber is registered', function() {
         var oSubscriber = {
-            events: {
-              channel: {
-                'item:actionChannel': function () {
+          events: {
+            channel: {
+              'item:actionChannel': function() {
 
-                }
               }
             }
           }
+        }
           , oResult;
 
         Hydra.bus.subscribe(oSubscriber);
@@ -1136,9 +1020,9 @@
     });
 
 
-    describe('Subscribe to one channel', function () {
+    describe('Subscribe to one channel', function() {
 
-      it('should check that no subscriber must be added if Subscriber does not have events and must return false', function () {
+      it('should check that no subscriber must be added if Subscriber does not have events and must return false', function() {
         var oBadSubscriber = {}
           , bResult;
 
@@ -1154,21 +1038,21 @@
         oBadSubscriber = null;
       });
 
-      it('should check that one subscriber has been added to channel and other to global if oSubscriber has events', function () {
+      it('should check that one subscriber has been added to channel and other to global if oSubscriber has events', function() {
         var oSubscriber = {
-            events: {
-              global: {
-                'item:actionGlobal': function () {
+          events: {
+            global: {
+              'item:actionGlobal': function() {
 
-                }
-              },
-              channel: {
-                'item:actionChannel': function () {
+              }
+            },
+            channel: {
+              'item:actionChannel': function() {
 
-                }
               }
             }
           }
+        }
           , aChannelSubscribers
           , aGlobalSubscribers
           , bResult;
@@ -1196,9 +1080,9 @@
 
     });
 
-    describe('Unsubscribe from one channel', function () {
+    describe('Unsubscribe from one channel', function() {
 
-      it('should check that must return false if Subscriber does not have events', function () {
+      it('should check that must return false if Subscriber does not have events', function() {
         var oBadSubscriber = {}
           , bResult;
 
@@ -1211,21 +1095,21 @@
         oBadSubscriber = null;
       });
 
-      it('should check that must return false if Subscriber has events but has not been subscribed', function () {
+      it('should check that must return false if Subscriber has events but has not been subscribed', function() {
         var oSubscriber = {
-            events: {
-              global: {
-                'item:actionGlobal': function () {
+          events: {
+            global: {
+              'item:actionGlobal': function() {
 
-                }
-              },
-              channel: {
-                'item:actionChannel': function () {
+              }
+            },
+            channel: {
+              'item:actionChannel': function() {
 
-                }
               }
             }
           }
+        }
           , bResult;
 
         Hydra.bus.reset();
@@ -1237,21 +1121,21 @@
         oSubscriber = null;
       });
 
-      it('should check that must return true if Subscriber has events but has been subscribed', function () {
+      it('should check that must return true if Subscriber has events but has been subscribed', function() {
         var oSubscriber = {
-            events: {
-              global: {
-                'item:actionGlobal': function () {
+          events: {
+            global: {
+              'item:actionGlobal': function() {
 
-                }
-              },
-              channel: {
-                'item:actionChannel': function () {
+              }
+            },
+            channel: {
+              'item:actionChannel': function() {
 
-                }
               }
             }
           }
+        }
           , bResult;
 
         Hydra.bus.reset();
@@ -1265,21 +1149,21 @@
         oSubscriber = null;
       });
 
-      it('should check that subscribers of global must have subscriber if unsubscribe is launched', function () {
+      it('should check that subscribers of global must have subscriber if unsubscribe is launched', function() {
         var oSubscriber = {
-            events: {
-              global: {
-                'item:actionGlobal': function () {
+          events: {
+            global: {
+              'item:actionGlobal': function() {
 
-                }
-              },
-              channel: {
-                'item:actionChannel': function () {
+              }
+            },
+            channel: {
+              'item:actionChannel': function() {
 
-                }
               }
             }
           }
+        }
           , bResult
           , aSubscribers;
 
@@ -1298,17 +1182,17 @@
 
     });
 
-    describe('Publish events in channel', function () {
+    describe('Publish events in channel', function() {
 
-      it('should check that must return false if there are no subscribers to the event in channel', function () {
+      it('should check that must return false if there are no subscribers to the event in channel', function() {
         var clock = sinon.useFakeTimers()
           , oSubscriber = {
-            events: {
-              channel: {
-                'item:action': sinon.stub()
-              }
+          events: {
+            channel: {
+              'item:action': sinon.stub()
             }
           }
+        }
           , bResult
           , oData = {};
 
@@ -1324,15 +1208,15 @@
         oSubscriber = null;
       });
 
-      it('should check that must return true if there are any subscriber to the event in channel', function () {
+      it('should check that must return true if there are any subscriber to the event in channel', function() {
         var clock = sinon.useFakeTimers()
           , oSubscriber = {
-            events: {
-              channel: {
-                'item:action': sinon.stub()
-              }
+          events: {
+            channel: {
+              'item:action': sinon.stub()
             }
           }
+        }
           , bResult
           , oData = {};
 
@@ -1352,16 +1236,16 @@
 
     });
 
-    describe('Check that addExtensionBeforeInit works', function () {
+    describe('Check that addExtensionBeforeInit works', function() {
 
-      it('should check that after using addExtensionBeforeInitTest it saves the object', function () {
+      it('should check that after using addExtensionBeforeInitTest it saves the object', function() {
         var obj = {
           test: sinon.stub()
         };
 
-        Hydra.module.register('test', function () {
+        Hydra.module.register('test', function() {
           return {
-            init: function () {
+            init: function() {
 
             }
           };
@@ -1375,9 +1259,9 @@
 
     });
 
-    describe('Check that getCopyModules works', function () {
+    describe('Check that getCopyModules works', function() {
 
-      beforeEach(function () {
+      beforeEach(function() {
         var oModules = Hydra.getCopyModules(),
           sKey;
 
@@ -1388,19 +1272,19 @@
         }
       });
 
-      it('should check that before doing anything it will return an empty object', function () {
+      it('should check that before doing anything it will return an empty object', function() {
         var oModules = Hydra.getCopyModules();
         expect(Object.keys(oModules).length).toEqual(0);
       });
 
-      it('should check that if we set oModules to a different object it will continue returning the same copy of oModules', function () {
+      it('should check that if we set oModules to a different object it will continue returning the same copy of oModules', function() {
         expect(Object.keys(Hydra.getCopyModules()).length).toEqual(0);
       });
 
-      it('should check that after registering one Module it will return one', function () {
+      it('should check that after registering one Module it will return one', function() {
         var oModules;
 
-        Hydra.module.register('test', function () {
+        Hydra.module.register('test', function() {
           return {};
         });
 
@@ -1411,37 +1295,37 @@
 
     });
 
-    describe('Check that getCopyChannels works', function () {
+    describe('Check that getCopyChannels works', function() {
 
-      beforeEach(function () {
+      beforeEach(function() {
         Hydra.bus.reset();
       });
 
-      it('should check that before doing anything it will return zero', function () {
+      it('should check that before doing anything it will return zero', function() {
         var oChannels = Hydra.getCopyChannels();
         expect(Object.keys(oChannels.global).length).toEqual(0);
       });
 
-      it('should check that before doing anything it will return one for the channels length', function () {
+      it('should check that before doing anything it will return one for the channels length', function() {
         var oChannels = Hydra.getCopyChannels();
 
         expect(Object.keys(oChannels).length).toEqual(1);
       });
 
-      it('should check that if we set oChannels to a different object it will continue returning the same copy of oChannels', function () {
+      it('should check that if we set oChannels to a different object it will continue returning the same copy of oChannels', function() {
         var oChannels = Hydra.getCopyChannels();
 
         expect(Object.keys(oChannels).length).toEqual(1);
       });
 
-      it('should check that after registering one Module it will return one', function () {
+      it('should check that after registering one Module it will return one', function() {
         var oChannels;
 
-        Hydra.module.register('test', function () {
+        Hydra.module.register('test', function() {
           return {
             events: {
               global: {
-                'test': function () {
+                'test': function() {
                 }
               }
             }
@@ -1453,14 +1337,14 @@
         expect(Object.keys(oChannels.global).length).toEqual(1);
       });
 
-      it('should check that after registering one Module in a different channel from global it will return two for the channels length and one for the event in other_channel', function () {
+      it('should check that after registering one Module in a different channel from global it will return two for the channels length and one for the event in other_channel', function() {
         var oChannels;
 
-        Hydra.module.register('test', function () {
+        Hydra.module.register('test', function() {
           return {
             events: {
               other_channel: {
-                'test': function () {
+                'test': function() {
                 }
               }
             }
@@ -1475,23 +1359,23 @@
 
     });
 
-    describe('Check that you can access Hydra api', function () {
+    describe('Check that you can access Hydra api', function() {
 
-      beforeEach(function () {
+      beforeEach(function() {
         Hydra.bus.reset();
       });
 
-      it('should check that you can access Hydra.module', function () {
+      it('should check that you can access Hydra.module', function() {
         var oStub = sinon.stub();
-        Hydra.module.register('test', function (bus, module) {
+        Hydra.module.register('test', function(bus, module) {
           return {
-            init: function () {
+            init: function() {
               module.start('test2');
             }
           };
         });
 
-        Hydra.module.register('test2', function () {
+        Hydra.module.register('test2', function() {
           return {
             init: oStub
           };
@@ -1502,25 +1386,25 @@
         expect(oStub.calledOnce).toBeTruthy();
       });
 
-      it('should check that you can access Hydra.bus', function () {
+      it('should check that you can access Hydra.bus', function() {
         var oStub = sinon.stub();
 
-        Hydra.module.register('test', function (bus, module) {
+        Hydra.module.register('test', function(bus, module) {
           return {
             events: {
               'channel': {
                 'item:action': oStub
               }
             },
-            init: function () {
+            init: function() {
               module.start('test2');
             }
           };
         });
 
-        Hydra.module.register('test2', function (bus) {
+        Hydra.module.register('test2', function(bus) {
           return {
-            init: function () {
+            init: function() {
               bus.publish('channel', 'item:action');
             }
           };
@@ -1531,25 +1415,25 @@
         expect(oStub.calledOnce).toBeTruthy();
       });
 
-      it('should check that you can access Hydra.errorhandler', function () {
+      it('should check that you can access Hydra.errorhandler', function() {
         var oModule;
 
         Hydra.setErrorHandler({
-          log: function () {
+          log: function() {
           },
-          error: function () {
+          error: function() {
           }
         });
 
-        Hydra.module.register('test', function (bus, module, errorHandler) {
+        Hydra.module.register('test', function(bus, module, errorHandler) {
           return {
-            init: function () {
+            init: function() {
               errorHandler.log('Hei');
             }
           };
         });
 
-        Hydra.module.test('test', function (oMod) {
+        Hydra.module.test('test', function(oMod) {
           oModule = oMod;
         });
 
@@ -1558,16 +1442,16 @@
         expect(oModule.mocks.log.log.calledOnce).toBeTruthy();
       });
 
-      it('should check that you can access to your dependencies', function () {
+      it('should check that you can access to your dependencies', function() {
         var oStub = sinon.stub();
-        Hydra.module.register('test', function () {
+        Hydra.module.register('test', function() {
           return {
             init: oStub
           };
         });
-        Hydra.module.register('test2', ['hm_test'], function (test) {
+        Hydra.module.register('test2', ['hm_test'], function(test) {
           return {
-            init: function () {
+            init: function() {
               test.start();
             }
           };
@@ -1577,18 +1461,18 @@
         expect(oStub.calledOnce).toBeTruthy();
       });
 
-      it('test that you can overwrite the dependencies', function () {
+      it('test that you can overwrite the dependencies', function() {
         var oStub;
-        Hydra.module.register('test', function () {
+        Hydra.module.register('test', function() {
           return {
-            init: function () {
+            init: function() {
             }
           };
         });
 
-        Hydra.module.register('test2', ['hm_test'], function (test) {
+        Hydra.module.register('test2', ['hm_test'], function(test) {
           return {
-            init: function () {
+            init: function() {
               test.start();
             }
           }
@@ -1599,18 +1483,18 @@
           {
             start: oStub
           }
-        ], function (oModule) {
+        ], function(oModule) {
           oModule.init();
 
           expect(oStub.calledOnce).toBeTruthy();
         });
       });
 
-      it('test that you can overwrite the window object', function () {
+      it('test that you can overwrite the window object', function() {
         var global;
-        Hydra.module.register('_test3', ['$global'], function (window) {
+        Hydra.module.register('_test3', ['$global'], function(window) {
           return {
-            init: function () {
+            init: function() {
               window.document.getElementById('test');
             }
           };
@@ -1621,18 +1505,18 @@
             getElementById: sinon.stub()
           }
         };
-        Hydra.module.test('_test3', [global], function (oModule) {
+        Hydra.module.test('_test3', [global], function(oModule) {
           oModule.init();
 
           expect(global.document.getElementById.calledOnce).toBeTruthy();
         });
       });
 
-      it('test that you can overwrite the document object', function () {
+      it('test that you can overwrite the document object', function() {
         var document;
-        Hydra.module.register('_test4', ['$doc'], function (doc) {
+        Hydra.module.register('_test4', ['$doc'], function(doc) {
           return {
-            init: function () {
+            init: function() {
               doc.getElementById('test');
             }
           };
@@ -1640,29 +1524,29 @@
         document = {
           getElementById: sinon.stub()
         };
-        Hydra.module.test('_test4', [document], function (oModule) {
+        Hydra.module.test('_test4', [document], function(oModule) {
           oModule.init();
 
           expect(document.getElementById.calledOnce).toBeTruthy();
         });
       });
 
-      it('test should check that if you do not supply anything it should be able to mock all the dependencies', function () {
+      it('test should check that if you do not supply anything it should be able to mock all the dependencies', function() {
         var registerStub, $bus, $module, $log, $api;
-        Hydra.module.register('_test5', function ($bus, $module, $log, $api) {
+        Hydra.module.register('_test5', function($bus, $module, $log, $api) {
           return {
-            init: function () {
+            init: function() {
               $bus.publish('channel', 'test');
-              $module.register('_test6', [],function () {
+              $module.register('_test6', [], function() {
                 return {
-                  init: function () {
+                  init: function() {
                   }
                 };
               }).start();
               $log.log('test7');
-              $api.module.register('_test7', [], function () {
+              $api.module.register('_test7', [], function() {
                 return {
-                  init: function () {
+                  init: function() {
                   }
                 };
               });
@@ -1675,7 +1559,7 @@
           publish: sinon.stub()
         };
         $module = {
-          register: function () {
+          register: function() {
             registerStub();
             return this;
           },
@@ -1689,7 +1573,7 @@
             register: sinon.stub()
           }
         };
-        Hydra.module.test('_test5', [$bus, $module, $log, $api], function (oModule) {
+        Hydra.module.test('_test5', [$bus, $module, $log, $api], function(oModule) {
           oModule.init();
 
           expect($bus.publish.calledOnce).toBeTruthy();
@@ -1700,26 +1584,26 @@
         });
       });
 
-      describe('Pre-process publish data', function () {
+      describe('Pre-process publish data', function() {
 
-        beforeEach(function () {
-          Hydra.bus.preprocessorPublishData(function (oData) {
+        beforeEach(function() {
+          Hydra.bus.preprocessorPublishData(function(oData) {
             return oData;
           });
         });
 
-        afterEach(function () {
-          Hydra.bus.preprocessorPublishData(function (oData) {
+        afterEach(function() {
+          Hydra.bus.preprocessorPublishData(function(oData) {
             return oData;
           });
         });
 
-        describe('Normal usage', function () {
-          it('should check that the changes in the original object are persistent', function () {
+        describe('Normal usage', function() {
+          it('should check that the changes in the original object are persistent', function() {
             var oObj = {
               data: 'original'
             };
-            Hydra.bus.subscribeTo('channel', 'test', function (oData) {
+            Hydra.bus.subscribeTo('channel', 'test', function(oData) {
               oData.data = 'changed'
             }, {});
             Hydra.bus.publish('channel', 'test', oObj);
@@ -1727,16 +1611,16 @@
           });
         });
 
-        describe('Cloning usage', function () {
-          it('should check that the changes in the original object are not persistent', function () {
+        describe('Cloning usage', function() {
+          it('should check that the changes in the original object are not persistent', function() {
             var oObj = {
               data: 'original'
             };
-            Hydra.bus.subscribeTo('channel', 'test', function (oData) {
+            Hydra.bus.subscribeTo('channel', 'test', function(oData) {
               oData.data = 'changed'
             }, {});
 
-            Hydra.bus.preprocessorPublishData(function (oData, clone) {
+            Hydra.bus.preprocessorPublishData(function(oData, clone) {
               return clone(oData);
             });
 
@@ -1746,20 +1630,20 @@
         });
       });
 
-      describe('Extending and events', function () {
+      describe('Extending and events', function() {
 
-        describe('Basic module with events:Grandpa', function () {
+        describe('Basic module with events:Grandpa', function() {
 
-          beforeEach(function () {
+          beforeEach(function() {
             Hydra.bus.reset();
             Hydra.module.reset();
           });
 
-          it('should call the test callback when the event is triggered', function () {
+          it('should call the test callback when the event is triggered', function() {
             var oModBase = {
               oConfig: null,
-              init: function () {
-                this.oConfig = { soy: 'base-module' };
+              init: function() {
+                this.oConfig = {soy: 'base-module'};
               },
               events: {
                 channel: {
@@ -1767,7 +1651,7 @@
                 }
               }
             };
-            Hydra.module.register('base-module', function () {
+            Hydra.module.register('base-module', function() {
               return oModBase;
             });
             Hydra.module.start('base-module');
@@ -1777,19 +1661,19 @@
 
         });
 
-        describe('Extended module with events:Father', function () {
+        describe('Extended module with events:Father', function() {
 
-          beforeEach(function () {
+          beforeEach(function() {
             Hydra.bus.reset();
             Hydra.module.reset();
           });
 
-          it('should call the test callback when the event is triggered but not the parent', function () {
+          it('should call the test callback when the event is triggered but not the parent', function() {
             var oModBase, oModFather;
             oModBase = {
               oConfig: null,
-              init: function () {
-                this.oConfig = { soy: 'base-module' };
+              init: function() {
+                this.oConfig = {soy: 'base-module'};
               },
               events: {
                 channel: {
@@ -1804,10 +1688,10 @@
                 }
               }
             };
-            Hydra.module.register('base-module', function () {
+            Hydra.module.register('base-module', function() {
               return oModBase;
             });
-            Hydra.module.extend('base-module', 'father-module', function () {
+            Hydra.module.extend('base-module', 'father-module', function() {
               return oModFather;
             });
             Hydra.module.start('father-module');
@@ -1818,19 +1702,19 @@
 
         });
 
-        describe('Extended module with events: Son', function () {
+        describe('Extended module with events: Son', function() {
 
-          beforeEach(function () {
+          beforeEach(function() {
             Hydra.bus.reset();
             Hydra.module.reset();
           });
 
-          it('should check that the test callback is called when the event is triggered', function () {
+          it('should check that the test callback is called when the event is triggered', function() {
             var oModBase, oModFather, oModSon;
             oModBase = {
               oConfig: null,
-              init: function () {
-                this.oConfig = { soy: 'base-module' };
+              init: function() {
+                this.oConfig = {soy: 'base-module'};
               },
               events: {
                 channel: {
@@ -1846,13 +1730,13 @@
               }
             };
             oModSon = {};
-            Hydra.module.register('base-module', function () {
+            Hydra.module.register('base-module', function() {
               return oModBase;
             });
-            Hydra.module.extend('base-module', 'father-module', function () {
+            Hydra.module.extend('base-module', 'father-module', function() {
               return oModFather;
             });
-            Hydra.module.extend('father-module', 'son-module', function () {
+            Hydra.module.extend('father-module', 'son-module', function() {
               return oModSon;
             });
             Hydra.module.start('son-module');
@@ -1865,87 +1749,68 @@
 
       });
 
-      describe('Add mapping', function () {
+      describe('Add mapping', function() {
 
-        describe('Sync mapping', function () {
-          it('should check that add mapping add the mapping to the object', function () {
-            var flag = false,
-              oStub = sinon.stub(),
+        describe('Sync mapping', function() {
+          it('should check that add mapping add the mapping to the object', function(done) {
+            var oStub = sinon.stub(),
               dependencies;
-            Hydra.module.register('test_mapping', ['$$_bind'], function (bind) {
+            Hydra.module.register('test_mapping', ['$$_bind'], function(bind) {
               return {
-                init: function () {
+                init: function() {
                   bind();
                 }
               }
             });
-            waitsFor(function () {
-              var oPromise = Hydra.resolveDependencies('test_mapping');
-              oPromise.then(function () {
+            var oPromise = Hydra.resolveDependencies('test_mapping');
+            oPromise
+              .then(function() {
                 dependencies = [].slice.call(arguments);
-                flag = true;
+                expect(typeof dependencies[1] === 'object').toBeTruthy();
+                Hydra.addMapping('$$_', {
+                  bind: oStub
+                });
+              })
+              .then(function() {
+                var oPromise = Hydra.resolveDependencies('test_mapping');
+                oPromise
+                  .then(function() {
+                    dependencies = [].slice.call(arguments);
+                    expect(typeof dependencies[1] === 'function').toBeTruthy();
+                    done();
+                  });
               });
-              return flag;
-            }, 'It should resolve the dependencies before 1 sec', 1000);
 
-            runs(function () {
-              expect(typeof dependencies[1] === 'object').toBeTruthy();
-              Hydra.addMapping('$$_', {
-                bind: oStub
-              });
-              flag = false;
-            });
-
-            waitsFor(function () {
-              var oPromise = Hydra.resolveDependencies('test_mapping');
-              oPromise.then(function () {
-                dependencies = [].slice.call(arguments);
-                flag = true;
-              });
-              return flag;
-            }, 'It should resolve the dependencies before 1 sec', 1000);
-
-            runs(function () {
-              expect(typeof dependencies[1] === 'function').toBeTruthy();
-            });
           });
         });
 
-        describe('Async mapping', function () {
-          it('should check that add mapping returns the correct mapping', function () {
+        describe('Async mapping', function() {
+          it('should check that add mapping returns the correct mapping', function(done) {
             var dependencies,
-              oStub = sinon.stub(),
-              flag = false;
+              oStub = sinon.stub();
 
-            runs(function () {
-              Hydra.module.register('test_async_mapping', ['ex_binding'], function (binding) {
-                return {
-                  init: function () {
-                    binding();
-                  }
+            Hydra.module.register('test_async_mapping', ['ex_binding'], function(binding) {
+              return {
+                init: function() {
+                  binding();
                 }
-              });
+              }
             });
 
-            waitsFor(function () {
-              var oPromise = Hydra.resolveDependencies('test_async_mapping');
-              oPromise.then(function () {
-                dependencies = [].slice.call(arguments);
-                flag = true;
-              });
-              return flag;
-            }, 'It should resolve the dependencies before 1 sec', 1000);
-
-            runs(function () {
+            var oPromise = Hydra.resolveDependencies('test_async_mapping');
+            oPromise
+              .then(function() {
+              dependencies = [].slice.call(arguments);
+            })
+            .then(function () {
               expect(typeof dependencies[1] === 'object').toBeTruthy();
               Hydra.addAsyncMapping('ex_', {
                 binding: oStub
-              }, function (sDependency) {
+              }, function(sDependency) {
                 var oResolution = this[sDependency],
-                  oPromise = new Hydra.Promise(function (resolve, reject) {
-                    sTimeout(function () {
+                  oPromise = new Hydra.Promise(function(resolve, reject) {
+                    setTimeout(function() {
                       resolve(oResolution);
-                      flag = true;
                     }, 500);
                   });
                 if (!oResolution) {
@@ -1953,106 +1818,102 @@
                 }
                 return oPromise;
               });
-              flag = false;
-            });
-
-            waitsFor(function () {
+            })
+            .then(function () {
               var oPromise = Hydra.resolveDependencies('test_async_mapping');
-              oPromise.then(function () {
+              oPromise.then(function() {
                 dependencies = [].slice.call(arguments);
-                flag = true;
+                expect(typeof dependencies[1] === 'function').toBeTruthy();
+                done();
               });
-              return flag;
-            }, 'It should resolve the dependencies before 1 sec', 1000);
-
-            runs(function () {
-              expect(typeof dependencies[1] === 'function').toBeTruthy();
             });
+
+
           });
         });
       });
     });
-    describe('Module extension and dependencies', function () {
-      it('should access the parent module using this.uber', function () {
+    describe('Module extension and dependencies', function() {
+      it('should access the parent module using this.uber', function() {
         var oBase, oParent, oSon, oStub, oSonStub;
         oStub = sinon.stub();
         oSonStub = sinon.stub();
         oBase = {
-          init: function () {
+          init: function() {
             this.other();
           },
-          other: function () {
+          other: function() {
             oStub();
           }
         };
         oParent = {
-          init: function () {
+          init: function() {
             this.uber.init();
           }
         };
         oSon = {
-          other: function () {
+          other: function() {
             oSonStub()
           }
         };
-        Hydra.module.register('base', function () {
+        Hydra.module.register('base', function() {
           return oBase;
         });
-        Hydra.module.extend('base', 'parent', function () {
+        Hydra.module.extend('base', 'parent', function() {
           return oParent;
         });
-        Hydra.module.extend('parent', 'son', function () {
+        Hydra.module.extend('parent', 'son', function() {
           return oSon;
         });
         Hydra.module.start('son');
         expect(oStub.callCount).toEqual(0);
         expect(oSonStub.callCount).toEqual(1);
       });
-      it('should check that the extended module can access their dependencies', function () {
+      it('should check that the extended module can access their dependencies', function() {
         var oBody;
-        Hydra.module.register('base', function () {
+        Hydra.module.register('base', function() {
           return {};
         });
-        Hydra.module.extend('base', 'parent', ['$$_bus'], function (oBus) {
+        Hydra.module.extend('base', 'parent', ['$$_bus'], function(oBus) {
           return {
-            init: function () {
+            init: function() {
               oBus.publish('channel', 'test:event');
             }
           };
         });
-        Hydra.module.extend('parent', 'son', ['$$_doc'], function (doc) {
+        Hydra.module.extend('parent', 'son', ['$$_doc'], function(doc) {
           return {
-            init: function () {
+            init: function() {
               oBody = doc.getElementsByTagName('body')[0];
               this.uber.init();
             }
           };
         });
-        Hydra.module.test('son', function (oModule) {
+        Hydra.module.test('son', function(oModule) {
           oModule.mocks.doc.getElementsByTagName.returns([document.body]);
           oModule.init();
           expect(oBody).toEqual(document.body);
           expect(oModule.mocks.doc.getElementsByTagName.callCount).toEqual(1);
         });
       });
-      it('should check that the extended module can access their dependencies', function () {
+      it('should check that the extended module can access their dependencies', function() {
         var oBody;
-        Hydra.module.register('base', ['$$_bus'], function (oBus) {
+        Hydra.module.register('base', ['$$_bus'], function(oBus) {
           return {
-            init: function () {
+            init: function() {
               oBus.publish('channel', 'test:event');
             }
           }
         });
-        Hydra.module.extend('base', 'parent', ['$$_doc'], function (doc) {
+        Hydra.module.extend('base', 'parent', ['$$_doc'], function(doc) {
           return {
-            init: function () {
+            init: function() {
               oBody = doc.getElementsByTagName('body')[0];
               this.uber.init();
             }
           };
         });
-        Hydra.module.test('parent', function (oModule) {
+        Hydra.module.test('parent', function(oModule) {
           oModule.mocks.doc.getElementsByTagName.returns([document.body]);
           oModule.init();
           expect(oBody).toEqual(document.body);
@@ -2060,8 +1921,8 @@
         });
       });
     });
-    describe('Module extension and access parent methods', function () {
-      it('should access their methods from parent methods', function () {
+    describe('Module extension and access parent methods', function() {
+      it('should access their methods from parent methods', function() {
         Hydra.setDebug(true);
         var oBase, oParent, oSon, oStub, oStub2, oSonStub, oSonStub2;
         oStub = sinon.stub();
@@ -2069,32 +1930,32 @@
         oSonStub = sinon.stub();
         oSonStub2 = sinon.stub();
         oBase = {
-          other: function () {
+          other: function() {
             this.rasca();
             oStub();
           },
-          rasca: function () {
+          rasca: function() {
             oStub2();
           }
         };
         oParent = {
-          init: function () {
+          init: function() {
             this.uber.other();
           }
         };
         oSon = {
           other: oSonStub,
-          rasca: function () {
+          rasca: function() {
             oSonStub2();
           }
         };
-        Hydra.module.register('base', function () {
+        Hydra.module.register('base', function() {
           return oBase;
         });
-        Hydra.module.extend('base', 'parent', function () {
+        Hydra.module.extend('base', 'parent', function() {
           return oParent;
         });
-        Hydra.module.extend('parent', 'son', function () {
+        Hydra.module.extend('parent', 'son', function() {
           return oSon;
         });
         Hydra.module.start('son');
@@ -2107,59 +1968,59 @@
     });
   });
 
-  describe('Extension dependencies bug', function () {
-    it('should check that the extended module should get and access to a new dependencies array each time:first execution', function () {
-      Hydra.module.register('base-module', function () {
+  describe('Extension dependencies bug', function() {
+    it('should check that the extended module should get and access to a new dependencies array each time:first execution', function() {
+      Hydra.module.register('base-module', function() {
         return {
-          init: function () {
+          init: function() {
           }
         };
       });
-      Hydra.module.extend('base-module', 'extended-module', function ( oBus ) {
+      Hydra.module.extend('base-module', 'extended-module', function(oBus) {
         return {
-          init: function () {
+          init: function() {
             oBus.publish('channel', 'test:action');
           }
         };
       });
 
-      Hydra.module.test('extended-module', function ( oMod ) {
+      Hydra.module.test('extended-module', function(oMod) {
         oMod.init();
-        expect( oMod.mocks.bus.publish.callCount ).toEqual( 1 );
+        expect(oMod.mocks.bus.publish.callCount).toEqual(1);
       });
     });
-    it('should check that the extended module should get and access to a new dependencies array each time:second execution', function () {
-      Hydra.module.register('base-module', function () {
+    it('should check that the extended module should get and access to a new dependencies array each time:second execution', function() {
+      Hydra.module.register('base-module', function() {
         return {
-          init: function () {
+          init: function() {
           }
         };
       });
-      Hydra.module.extend('base-module', 'extended-module', function ( oBus ) {
+      Hydra.module.extend('base-module', 'extended-module', function(oBus) {
         return {
-          init: function () {
+          init: function() {
             oBus.publish('channel', 'test:action');
           }
         };
       });
 
-      Hydra.module.test('extended-module', function ( oMod ) {
+      Hydra.module.test('extended-module', function(oMod) {
         oMod.init();
-        Hydra.module.test('extended-module', function ( oMod ) {
+        Hydra.module.test('extended-module', function(oMod) {
           oMod.init();
-          expect( oMod.mocks.bus.publish.callCount ).toEqual( 1 );
+          expect(oMod.mocks.bus.publish.callCount).toEqual(1);
         });
       });
     });
   });
-  describe('Test Deferred api', function () {
-    it('should check that Deferred is called properly with one promise', function () {
+  describe('Test Deferred api', function() {
+    it('should check that Deferred is called properly with one promise', function() {
       var oDeferred = new Hydra.Deferred(),
-          oPromise1 = new Hydra.Promise(),
-          oStubAllPromisesResolved = sinon.stub(),
-          oStubOnePromiseRejected = sinon.stub(),
-          oPromiseResolved = sinon.stub(),
-          oPromiseRejected = sinon.stub();
+        oPromise1 = new Hydra.Promise(),
+        oStubAllPromisesResolved = sinon.stub(),
+        oStubOnePromiseRejected = sinon.stub(),
+        oPromiseResolved = sinon.stub(),
+        oPromiseRejected = sinon.stub();
 
       oPromise1.then(oPromiseResolved, oPromiseRejected);
 
@@ -2170,7 +2031,7 @@
       expect(oPromiseResolved.callCount).toEqual(1);
       expect(oStubAllPromisesResolved.callCount).toEqual(1);
     });
-    it('should check that Deferred is called properly with two promises but one is rejected', function () {
+    it('should check that Deferred is called properly with two promises but one is rejected', function() {
       var oDeferred = new Hydra.Deferred(),
         oPromise1 = new Hydra.Promise(),
         oPromise2 = new Hydra.Promise(),
@@ -2195,7 +2056,7 @@
       expect(oStubAllPromisesResolved.callCount).toEqual(0);
       expect(oStubOnePromiseRejected.callCount).toEqual(1);
     });
-    it('should check that Deferred is called properly with two promises but one is rejected', function () {
+    it('should check that Deferred is called properly with two promises but one is rejected', function() {
       var oDeferred = new Hydra.Deferred(),
         oPromise1 = new Hydra.Promise(),
         oPromise2 = new Hydra.Promise(),
@@ -2222,7 +2083,7 @@
       expect(oStubOnePromiseRejected.callCount).toEqual(0);
     });
 
-    it('should check that Deferred is called properly with two promises but one is rejected', function () {
+    it('should check that Deferred is called properly with two promises but one is rejected', function() {
       var oDeferred = new Hydra.Deferred(),
         oPromise1 = new Hydra.Promise(),
         oPromise2 = new Hydra.Promise(),
@@ -2250,27 +2111,27 @@
     });
   });
 
-  describe('The module should not call more than one time to the init if the same instance exist', function () {
+  describe('The module should not call more than one time to the init if the same instance exist', function() {
     var stubInit;
-    beforeEach(function () {
+    beforeEach(function() {
       Hydra.bus.reset();
       Hydra.module.reset();
       stubInit = sinon.stub();
-      Hydra.module.register('base-module', function () {
+      Hydra.module.register('base-module', function() {
         return {
           init: stubInit
         };
       });
     });
 
-    it('should check that the first time we start a module without an instance name it calls the init method', function (){
+    it('should check that the first time we start a module without an instance name it calls the init method', function() {
       Hydra.setDebug(true);
       Hydra.module.start('base-module');
 
       expect(stubInit.callCount).toEqual(1);
       Hydra.setDebug(false);
     });
-    it('should check that the second time we start a module without an instance name then the init method is called two times', function () {
+    it('should check that the second time we start a module without an instance name then the init method is called two times', function() {
       Hydra.setDebug(true);
       Hydra.module.start('base-module');
       Hydra.module.start('base-module');
@@ -2278,7 +2139,7 @@
       expect(stubInit.callCount).toEqual(2);
       Hydra.setDebug(false);
     });
-    it('should check that the second time we start a module without an instance name then the init method is called two times', function () {
+    it('should check that the second time we start a module without an instance name then the init method is called two times', function() {
       Hydra.setDebug(true);
       Hydra.module.start('base-module');
       Hydra.module.start('base-module', 'hi');
@@ -2286,7 +2147,7 @@
       expect(stubInit.callCount).toEqual(2);
       Hydra.setDebug(false);
     });
-    it('should check that the second time we start a module without an instance name, but with the same instance name, then the init method is called two times but Hydra.stop is called one time', function () {
+    it('should check that the second time we start a module without an instance name, but with the same instance name, then the init method is called two times but Hydra.stop is called one time', function() {
       Hydra.setDebug(true);
       sinon.stub(Hydra.module, 'stop');
       Hydra.module.start('base-module', 'hi');

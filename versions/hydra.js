@@ -2223,7 +2223,7 @@ $__System.register('e', ['2', '3', '4', '5', '6', '7', '8', '9', 'b', 'd'], func
     }],
     execute: function () {
       und = undefined;
-      version = '3.10.0';
+      version = '3.11.0';
       Deferred = Promise;
       __type__ = 'api';
       getCopyChannels = bus.getCopyChannels;
