@@ -7,6 +7,8 @@ var data = require('gulp-data');
 var fs = require('fs');
 var rename = require('gulp-rename');
 var bump = require('gulp-bump');
+var rev = require('gulp-rev');
+var getFileSize = require("filesize");
 
 gulp.task('release', function () {
   return gulp.src('./*.json')
@@ -39,11 +41,24 @@ gulp.task('bundle-minify-gzip', ['bundle-minify'], function () {
     .pipe(gzip())
     .pipe(gulp.dest('versions/'));
 });
-gulp.task('default', ['bundle-minify-gzip'], function () {
-  var config = JSON.parse(fs.readFileSync('./package.json'));
-  return gulp.src('templates/README.tpl')
-    .pipe(data(config))
-    .pipe(swig())
-    .pipe(rename('README.md'))
-    .pipe(gulp.dest('./'));
+gulp.task('update-readme',function () {
+    var config = JSON.parse(fs.readFileSync('./package.json'));
+    var file = fs.statSync('./versions/hydra.min.js.gz');
+    var size = getFileSize(file.size);
+    config.size = size;
+    return gulp.src('templates/README.tpl')
+        .pipe(data(config))
+        .pipe(swig())
+        .pipe(rename('README.md'))
+        .pipe(gulp.dest('./'));
+});
+
+
+gulp.task('default', ['update-readme']);
+
+
+gulp.task('hash', function () {
+    return gulp.src(['versions/*.js', 'versions/*.map', 'versions/*.gz'])
+        .pipe(rev())
+        .pipe(gulp.dest('hashed/'));
 });
