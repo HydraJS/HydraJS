@@ -71,7 +71,7 @@
     "karma": "1.5.0",
     "karma-chrome-launcher": "2.0.0",
     "karma-coffee-preprocessor": "1.0.1",
-    "karma-coverage": "1.1.1",
+    "karma-coverage": "2.1.1",
     "karma-firefox-launcher": "1.0.1",
     "karma-html2js-preprocessor": "1.1.0",
     "karma-jasmine": "1.1.0",
