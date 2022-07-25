@@ -67,7 +67,7 @@
     "gulp-swig": "^0.8.0",
     "gulp-uglifyjs": "^0.6.2",
     "hydrajs-testing-helper": "*",
-    "jasmine-core": "^2.5.2",
+    "jasmine-core": "^4.3.0",
     "karma": "1.5.0",
     "karma-chrome-launcher": "2.0.0",
     "karma-coffee-preprocessor": "1.0.1",
