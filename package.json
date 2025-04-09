@@ -57,7 +57,7 @@
   "devDependencies": {
     "async": "2.6.4",
     "filesize": "^3.5.6",
-    "gulp": "^3.9.1",
+    "gulp": "^4.0.2",
     "gulp-bump": "^3.2.0",
     "gulp-data": "^1.2.1",
     "gulp-gzip": "^1.4.0",
