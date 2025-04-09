@@ -63,7 +63,7 @@
     "gulp-gzip": "^1.4.0",
     "gulp-jspm": "^0.5.13",
     "gulp-rename": "^1.2.2",
-    "gulp-rev": "^7.1.2",
+    "gulp-rev": "^10.0.0",
     "gulp-swig": "^0.9.1",
     "gulp-uglifyjs": "^0.6.2",
     "hydrajs-testing-helper": "*",
