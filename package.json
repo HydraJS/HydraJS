@@ -79,7 +79,7 @@
     "karma-phantomjs-launcher": "1.0.4",
     "karma-requirejs": "1.1.0",
     "karma-script-launcher": "1.0.0",
-    "sinon": "2.1.0",
+    "sinon": "21.0.3",
     "sinonjs-hydrajs-testing-helper": "*",
     "swig": "1.4.2",
     "uglify-js": "3.19.3"
